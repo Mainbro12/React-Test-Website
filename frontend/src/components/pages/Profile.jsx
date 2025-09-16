@@ -38,7 +38,6 @@ function ProfilePage({ user, setUser }) {
       }
 
       const data = await res.json();
-      console.log(data);
       setUser((prevUser) => ({ ...prevUser, avatar: data.user.avatar }));
     } catch (err) {
       console.error(err);

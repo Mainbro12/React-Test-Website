@@ -60,7 +60,6 @@ function SignUpPage() {
         setServerError(null); // Забираємо повідомлення про помилку
         return responseJson; // Повертаємо результат сервера
       } catch (error) {
-        console.log("dasdsad"); // Тестовий лог (можна прибрати)
         setServerError(error.message); // Встановлюємо повідомлення про помилку
       }
     },

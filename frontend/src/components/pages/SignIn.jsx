@@ -40,7 +40,6 @@ function SignInPage({ setUser }) {
         setServerError(null); // Скидаємо помилку (потрібен useState для setServerError)
         return responseJson; // Повертаємо дані від сервера
       } catch (error) {
-        console.log("dasdsad"); // Тестовий лог
         setServerError(error.message); // Зберігаємо помилку (потрібен useState)
       }
     },

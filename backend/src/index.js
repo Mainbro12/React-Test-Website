@@ -8,23 +8,11 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import withAuth from "./middleware.js";
-import dayjs from "dayjs";
+import APP_CONFIG from "./config.js";
 
 const app = express();
-const port = 3000;
-const SECRET_KEY = "asdassadas1312321321sad";
-
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
-app.use(cors());
-
-app.get("/", (req, res) => {
-  // ендпоінт
-  res.send("Hello World!");
-});
-
-app.use(bodyParser.json()); // для парсингу JSON
-app.use(bodyParser.urlencoded({ extended: true })); // для form-data
+const port = APP_CONFIG.SERVER_PORT || 3000;
+const SECRET_KEY = APP_CONFIG.JWT_SECRET_KEY;
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, "uploads/"),
@@ -40,11 +28,15 @@ const uploadDir = path.join(process.cwd(), "uploads");
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
+
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+app.use(cors());
+app.use(bodyParser.json()); // для парсингу JSON
+app.use(bodyParser.urlencoded({ extended: true })); // для form-data
 app.use("/uploads", express.static(uploadDir));
 
 app.post("/contact-form", async function (req, res) {
-  console.log("receiving data ...");
-  console.log("body is ", req.body);
   await db.any(
     "INSERT INTO comments(firstname, lastname, numberphone, email, comment) VALUES(${firstname}, ${lastname}, ${numberphone}, ${email}, ${comment})",
     req.body
@@ -84,7 +76,6 @@ app.post("/blog/create", withAuth, async function (req, res) {
   const user = await db.one("SELECT id FROM users WHERE email = ${email}", {
     email,
   });
-  console.log(user);
 
   await db.any(
     "INSERT INTO blog(title, image, description, user_id) VALUES(${title}, ${image}, ${description}, ${user.id} )",
@@ -96,9 +87,6 @@ app.post("/blog/create", withAuth, async function (req, res) {
 
 // Sign up
 app.post("/signup", async function (req, res) {
-  console.log("receiving data ...");
-  console.log("body is ", req.body);
-
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(req.body.password, salt);
 

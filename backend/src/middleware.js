@@ -1,9 +1,10 @@
 import jwt from "jsonwebtoken";
-const SECRET_KEY = "asdassadas1312321321sad";
+import APP_CONFIG from "./config.js";
+
+const SECRET_KEY = APP_CONFIG.JWT_SECRET_KEY;
 
 const withAuth = function (req, res, next) {
   const token = req.header("Authorization");
-  console.log(token);
 
   if (!token) {
     res.status(401).send("Unauthorized: No token provided");
