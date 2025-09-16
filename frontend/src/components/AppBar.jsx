@@ -15,20 +15,6 @@ import AdbIcon from "@mui/icons-material/Adb";
 import { Link } from "react-router";
 import { useNavigate } from "react-router";
 
-const leftLinks = [
-  { title: "Comments", link: "/comments" },
-  { title: "Contact", link: "/contact-form" },
-  { title: "My Blog", link: "/blog" },
-  { title: "Form Blog", link: "/blog/create" },
-];
-
-const settings = [
-  { title: "Profile", link: "/profile" },
-  { title: "Account" },
-  { title: "Dashboard" },
-  { title: "Logout" },
-];
-
 function ResponsiveAppBar(props) {
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
@@ -41,9 +27,17 @@ function ResponsiveAppBar(props) {
     setAnchorElUser(event.currentTarget);
   };
 
-  const handleSettingsClick = (link) => {
+  const handleSettingsClick = (action) => {
     handleCloseUserMenu();
-    navigate(link);
+    action();
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token"); // видаляємо токен
+    // опціонально – очистити стейт користувача
+    props.setUser(null);
+    // і перенаправити на логін
+    navigate("/signin");
   };
 
   const handleCloseNavMenu = () => {
@@ -53,6 +47,18 @@ function ResponsiveAppBar(props) {
   const handleCloseUserMenu = () => {
     setAnchorElUser(null);
   };
+
+  const leftLinks = [
+    { title: "Comments", link: "/comments" },
+    { title: "Contact", link: "/contact-form" },
+    { title: "My Blog", link: "/blog" },
+    { title: "Form Blog", link: "/blog/create" },
+  ];
+
+  const settings = [
+    { title: "Profile", action: () => navigate("/profile") },
+    { title: "Logout", action: () => handleLogout() },
+  ];
 
   return (
     <AppBar position="sticky">
@@ -207,7 +213,7 @@ function ResponsiveAppBar(props) {
               {settings.map((setting) => (
                 <MenuItem
                   key={setting}
-                  onClick={() => handleSettingsClick(setting.link)}
+                  onClick={() => handleSettingsClick(setting.action)}
                 >
                   <Typography sx={{ textAlign: "center" }}>
                     {setting.title}

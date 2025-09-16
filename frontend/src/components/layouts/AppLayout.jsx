@@ -12,7 +12,7 @@ const AppLayout = (props) => {
         minHeight: "100vh",
       }}
     >
-      <ResponsiveAppBar user={props.user} />
+      <ResponsiveAppBar user={props.user} setUser={props.setUser} />
 
       <Container
         component="main"

@@ -40,7 +40,7 @@ function App() {
 
   const router = createBrowserRouter([
     {
-      element: <AppLayout user={user} />,
+      element: <AppLayout user={user} setUser={setUser} />,
       children: [
         {
           path: "/",

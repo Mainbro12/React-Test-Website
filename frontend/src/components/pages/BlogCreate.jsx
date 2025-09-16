@@ -17,11 +17,13 @@ export default function BlogCreate() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const token = localStorage.getItem("token");
 
     await fetch("http://localhost:3000/blog/create", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(formData),
     })
@@ -29,18 +31,17 @@ export default function BlogCreate() {
         if (response.ok) {
           alert("Форма відправлена ✅");
         }
+        setFormData({
+          title: "",
+          image: "",
+          description: "",
+        });
         return response.json();
       })
       .catch((error) => {
         console.log(error);
         alert("Помилка під час відправки форми ❌");
       });
-
-    setFormData({
-      title: "",
-      image: "",
-      description: "",
-    });
   };
 
   return (

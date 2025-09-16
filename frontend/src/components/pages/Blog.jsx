@@ -7,6 +7,9 @@ import {
   Grid,
   CardMedia,
 } from "@mui/material";
+import dayjs from "dayjs";
+
+dayjs.locale("de");
 
 function BlogPage() {
   const [blogs, setBlogs] = useState([]);
@@ -15,6 +18,7 @@ function BlogPage() {
     const fetchBlogs = async () => {
       const response = await fetch("http://localhost:3000/blog");
       const data = await response.json();
+      const now = dayjs();
       setBlogs(data);
     };
     fetchBlogs();
@@ -27,12 +31,12 @@ function BlogPage() {
       </Typography>
       <Grid
         container
-        columns={{ xs: 1, sm: 4, md: 12, lg: 15 }}
+        columns={{ xs: 1, sm: 4, md: 12, lg: 16 }}
         spacing={{ xs: 2, md: 3 }}
       >
         {blogs.map((blog, index) => (
           <Grid
-            size={{ xs: 2, sm: 2, md: 4, lg: 3 }}
+            size={{ xs: 2, sm: 2, md: 4, lg: 4 }}
             width={"100%"}
             key={index}
           >
@@ -64,6 +68,16 @@ function BlogPage() {
                   sx={{ mt: 1, whiteSpace: "pre-line" }}
                 >
                   {blog.description}
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ mt: 2 }}
+                  >
+                    {`👨🏻‍💻Author: ${blog.user.firstname} ${blog.user.lastname}`}
+                    <br />
+                    Posted on:
+                    {dayjs(blog.created_at).format("DD/MM/YYYY HH:mm")}
+                  </Typography>
                 </Typography>
               </CardContent>
             </Card>

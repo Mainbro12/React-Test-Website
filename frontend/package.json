@@ -15,6 +15,7 @@
     "@mui/icons-material": "^7.3.2",
     "@mui/material": "^7.3.2",
     "@uiw/react-layout": "^4.10.5",
+    "dayjs": "^1.11.18",
     "formik": "^2.4.6",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
