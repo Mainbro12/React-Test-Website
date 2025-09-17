@@ -41,13 +41,16 @@ function SignUpPage() {
     onSubmit: async (values, { resetForm }) => {
       // Виконується при натисканні кнопки "Sign Up"
       try {
-        const response = await fetch("http://localhost:3000/signup", {
-          method: "POST", // Використовуємо POST-запит
-          headers: {
-            "Content-Type": "application/json", // Тіло у форматі JSON
-          },
-          body: JSON.stringify(values), // Перетворюємо дані користувача в JSON
-        });
+        const response = await fetch(
+          import.meta.env.VITE_SERVER_URL + "/signup",
+          {
+            method: "POST", // Використовуємо POST-запит
+            headers: {
+              "Content-Type": "application/json", // Тіло у форматі JSON
+            },
+            body: JSON.stringify(values), // Перетворюємо дані користувача в JSON
+          }
+        );
 
         const responseJson = await response.json(); // Читаємо відповідь від сервера
 

@@ -186,7 +186,7 @@ function ResponsiveAppBar(props) {
                 <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
                   <Avatar
                     alt="Remy Sharp"
-                    src={"http://localhost:3000" + props.user.avatar}
+                    src={import.meta.env.VITE_SERVER_URL + props.user.avatar}
                   >
                     {props.user.firstname[0].toUpperCase() +
                       props.user.lastname[0].toUpperCase()}

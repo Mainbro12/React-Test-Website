@@ -22,11 +22,14 @@ function App() {
     const checkSession = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await fetch("http://localhost:3000/verify-token", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const res = await fetch(
+          import.meta.env.VITE_SERVER_URL + "/verify-token",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
         const { user } = await res.json();
         setUser(user);

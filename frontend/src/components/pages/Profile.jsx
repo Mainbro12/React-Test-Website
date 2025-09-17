@@ -24,7 +24,7 @@ function ProfilePage({ user, setUser }) {
     try {
       const token = localStorage.getItem("token");
 
-      const res = await fetch("http://localhost:3000/profile", {
+      const res = await fetch(import.meta.env.VITE_SERVER_URL + "/profile", {
         method: "POST",
         "Content-Type": "application/json",
         body: formData,
@@ -51,7 +51,10 @@ function ProfilePage({ user, setUser }) {
       <Avatar
         alt="Remy Sharp"
         src={
-          "http://localhost:3000" + user.avatar + "?timeststamp=" + Date.now()
+          import.meta.env.VITE_SERVER_URL +
+          user.avatar +
+          "?timeststamp=" +
+          Date.now()
         }
         sx={{
           width: 200,

@@ -19,7 +19,7 @@ export default function BlogCreate() {
     e.preventDefault();
     const token = localStorage.getItem("token");
 
-    await fetch("http://localhost:3000/blog/create", {
+    await fetch(import.meta.env.VITE_SERVER_URL + "/blog/create", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

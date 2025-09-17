@@ -16,7 +16,7 @@ function BlogPage() {
 
   useEffect(() => {
     const fetchBlogs = async () => {
-      const response = await fetch("http://localhost:3000/blog");
+      const response = await fetch(import.meta.env.VITE_SERVER_URL + "/blog");
       const data = await response.json();
       const now = dayjs();
       setBlogs(data);

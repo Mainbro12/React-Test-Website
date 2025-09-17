@@ -20,7 +20,7 @@ export default function ContactForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const res = await fetch("http://localhost:3000/contact-form", {
+    const res = await fetch(import.meta.env.VITE_SERVER_URL + "/contact-form", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

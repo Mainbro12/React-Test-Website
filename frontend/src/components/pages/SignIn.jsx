@@ -20,13 +20,16 @@ function SignInPage({ setUser }) {
     onSubmit: async (values, { resetForm }) => {
       // Виконується при натисканні "Sign In"
       try {
-        const response = await fetch("http://localhost:3000/signin", {
-          method: "POST", // Запит методом POST
-          headers: {
-            "Content-Type": "application/json", // Тіло запиту у форматі JSON
-          },
-          body: JSON.stringify(values), // Перетворюємо email+password у JSON
-        });
+        const response = await fetch(
+          import.meta.env.VITE_SERVER_URL + "/signin",
+          {
+            method: "POST", // Запит методом POST
+            headers: {
+              "Content-Type": "application/json", // Тіло запиту у форматі JSON
+            },
+            body: JSON.stringify(values), // Перетворюємо email+password у JSON
+          }
+        );
 
         const responseJson = await response.json(); // Отримуємо відповідь від сервера
 

@@ -6,7 +6,9 @@ function CommentsPage() {
 
   useEffect(() => {
     const fetchComments = async () => {
-      const response = await fetch("http://localhost:3000/comments");
+      const response = await fetch(
+        import.meta.env.VITE_SERVER_URL + "/comments"
+      );
       const data = await response.json();
       setComments(data);
     };
