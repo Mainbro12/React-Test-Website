@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { Box, Paper, Typography, TextField, Button } from "@mui/material";
+import { useContext } from "react";
+import { AuthContext } from "../../contexts/AuthContext";
 
 export default function BlogCreate() {
+  const { token } = useContext(AuthContext);
   const [formData, setFormData] = useState({
     title: "",
     image: "",
@@ -17,7 +20,6 @@ export default function BlogCreate() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem("token");
 
     await fetch(import.meta.env.VITE_SERVER_URL + "/blog/create", {
       method: "POST",

@@ -2,7 +2,6 @@ import "./App.css";
 import { createBrowserRouter, data, Navigate } from "react-router";
 import { RouterProvider } from "react-router/dom";
 import AppLayout from "./components/layouts/AppLayout.jsx";
-import AnotherLayout from "./components/layouts/AnotherLAyout.jsx";
 import ContactPage from "./components/pages/ContactForm.jsx";
 import CommentsPage from "./components/pages/Comments.jsx";
 import BlogPage from "./components/pages/Blog.jsx";
@@ -11,39 +10,20 @@ import SignInPage from "./components/pages/SignIn.jsx";
 import SignUpPage from "./components/pages/SignUp.jsx";
 import HomePage from "./components/pages/HomePage.jsx";
 import { useEffect, useState } from "react";
-import { Box, CircularProgress } from "@mui/material";
 import ProfilePage from "./components/pages/Profile.jsx";
+import AuthProvider from "./providers/AuthProvider.jsx";
 
 function App() {
-  const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const res = await fetch(
-          import.meta.env.VITE_SERVER_URL + "/verify-token",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        const { user } = await res.json();
-        setUser(user);
-        setIsLoading(false);
-      } catch (err) {
-        setIsLoading(false);
-      }
-    };
-    checkSession();
-  }, []);
 
   const router = createBrowserRouter([
     {
-      element: <AppLayout user={user} setUser={setUser} />,
+      element: (
+        <AuthProvider user={user} setUser={setUser}>
+          <AppLayout />
+        </AuthProvider>
+      ),
+
       children: [
         {
           path: "/",
@@ -60,11 +40,7 @@ function App() {
 
         {
           path: "/signin",
-          element: user ? (
-            <Navigate to="/" replace />
-          ) : (
-            <SignInPage setUser={setUser} />
-          ),
+          element: user ? <Navigate to="/" replace /> : <SignInPage />,
         },
         {
           path: "/signup",
@@ -72,11 +48,7 @@ function App() {
         },
         {
           path: "/profile",
-          element: user ? (
-            <ProfilePage user={user} setUser={setUser} />
-          ) : (
-            <Navigate to="/signin" replace />
-          ),
+          element: user ? <ProfilePage /> : <Navigate to="/signin" replace />,
         },
 
         {
@@ -98,26 +70,7 @@ function App() {
         },
       ],
     },
-    {
-      element: <AnotherLayout />,
-      children: [{}],
-    },
   ]);
-
-  if (isLoading) {
-    return (
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center", // Centers horizontally
-          alignItems: "center", // Centers vertically
-          height: "100vh", // Example: make the Box fill the viewport height
-        }}
-      >
-        <CircularProgress size={100} />
-      </Box>
-    );
-  }
 
   return <RouterProvider router={router} />;
 }

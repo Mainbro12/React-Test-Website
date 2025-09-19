@@ -1,8 +1,11 @@
 import { Box, Button, TextField } from "@mui/material"; // Імпортуємо UI-компоненти з Material UI
 import { useFormik } from "formik"; // Хук Formik для роботи з формами
+import { useContext } from "react";
 import * as Yup from "yup"; // Yup для валідації форм
+import { AuthContext } from "../../contexts/AuthContext";
 
-function SignInPage({ setUser }) {
+function SignInPage() {
+  const { setUser } = useContext(AuthContext);
   const formik = useFormik({
     initialValues: {
       // Початкові значення полів форми

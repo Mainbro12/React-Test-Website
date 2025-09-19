@@ -1,8 +1,10 @@
 import { Avatar } from "@mui/material";
-import { grey } from "@mui/material/colors";
+import { useContext } from "react";
 import { useState } from "react";
+import { AuthContext } from "../../contexts/AuthContext";
 
-function ProfilePage({ user, setUser }) {
+function ProfilePage() {
+  const { user, setUser, token } = useContext(AuthContext);
   const [profileData, setProfileData] = useState({
     avatar: null, // тут зберігатиметься файл
   });
@@ -22,8 +24,6 @@ function ProfilePage({ user, setUser }) {
     formData.append("avatar", profileData.avatar);
 
     try {
-      const token = localStorage.getItem("token");
-
       const res = await fetch(import.meta.env.VITE_SERVER_URL + "/profile", {
         method: "POST",
         "Content-Type": "application/json",

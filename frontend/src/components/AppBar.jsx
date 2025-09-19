@@ -14,8 +14,12 @@ import MenuItem from "@mui/material/MenuItem";
 import AdbIcon from "@mui/icons-material/Adb";
 import { Link } from "react-router";
 import { useNavigate } from "react-router";
+import { useContext } from "react";
+import { AuthContext } from "../contexts/AuthContext";
+import ToggleThemeBtn from "./UI/ThemeToggleBtn";
 
-function ResponsiveAppBar(props) {
+function ResponsiveAppBar() {
+  const { user, handleLogout } = useContext(AuthContext);
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
   let navigate = useNavigate();
@@ -30,14 +34,6 @@ function ResponsiveAppBar(props) {
   const handleSettingsClick = (action) => {
     handleCloseUserMenu();
     action();
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem("token"); // видаляємо токен
-    // опціонально – очистити стейт користувача
-    props.setUser(null);
-    // і перенаправити на логін
-    navigate("/signin");
   };
 
   const handleCloseNavMenu = () => {
@@ -155,12 +151,13 @@ function ResponsiveAppBar(props) {
           <Box
             sx={{
               display: "flex",
+              alignItems: "center",
               flexDirection: "row",
               flexGrow: 0,
               gap: 2.5,
             }}
           >
-            {!props.user ? (
+            {!user ? (
               <>
                 <Link to={"/signin"}>
                   <Button
@@ -181,15 +178,15 @@ function ResponsiveAppBar(props) {
               </>
             ) : null}
 
-            {props.user ? (
+            {user ? (
               <Tooltip title="Open settings">
                 <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
                   <Avatar
                     alt="Remy Sharp"
-                    src={import.meta.env.VITE_SERVER_URL + props.user.avatar}
+                    src={import.meta.env.VITE_SERVER_URL + user.avatar}
                   >
-                    {props.user.firstname[0].toUpperCase() +
-                      props.user.lastname[0].toUpperCase()}
+                    {user.firstname[0].toUpperCase() +
+                      user.lastname[0].toUpperCase()}
                   </Avatar>
                 </IconButton>
               </Tooltip>
@@ -221,6 +218,8 @@ function ResponsiveAppBar(props) {
                 </MenuItem>
               ))}
             </Menu>
+
+            <ToggleThemeBtn />
           </Box>
         </Toolbar>
       </Container>

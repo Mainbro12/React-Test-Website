@@ -1,31 +1,38 @@
-import { Box, Container } from "@mui/material";
+import { Box, Container, createTheme, ThemeProvider } from "@mui/material";
 import { Outlet } from "react-router";
 import ResponsiveAppBar from "../AppBar";
 import Footer from "../Footer";
 
-const AppLayout = (props) => {
-  return (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        minHeight: "100vh",
-      }}
-    >
-      <ResponsiveAppBar user={props.user} setUser={props.setUser} />
+const AppLayout = () => {
+  const muiTheme = createTheme({
+    colorSchemes: {
+      dark: true,
+    },
+  });
 
-      <Container
-        component="main"
+  return (
+    <ThemeProvider theme={muiTheme}>
+      <Box
         sx={{
-          flexGrow: 1,
-          py: 4,
+          display: "flex",
+          flexDirection: "column",
+          minHeight: "100vh",
         }}
       >
-        <Outlet />
-      </Container>
+        <ResponsiveAppBar />
+        <Container
+          component="main"
+          sx={{
+            flexGrow: 1,
+            py: 4,
+          }}
+        >
+          <Outlet />
+        </Container>
 
-      <Footer />
-    </Box>
+        <Footer />
+      </Box>
+    </ThemeProvider>
   );
 };
 
