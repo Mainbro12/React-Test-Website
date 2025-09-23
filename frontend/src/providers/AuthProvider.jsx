@@ -3,9 +3,8 @@ import { useEffect } from "react";
 import { Box, CircularProgress } from "@mui/material";
 import { useState } from "react";
 import { AuthContext } from "../contexts/AuthContext";
-const AuthProvider = (props) => {
+const AuthProvider = ({ user, setUser, ...props }) => {
   const [isLoading, setIsLoading] = useState(true);
-
   const [token, setToken] = useState(null);
 
   useEffect(() => {
@@ -57,9 +56,7 @@ const AuthProvider = (props) => {
   }
 
   return (
-    <AuthContext.Provider
-      value={{ user: props.user, setUser: props.setUser, token, handleLogout }}
-    >
+    <AuthContext.Provider value={{ user, setUser, token, handleLogout }}>
       {props.children}
     </AuthContext.Provider>
   );
