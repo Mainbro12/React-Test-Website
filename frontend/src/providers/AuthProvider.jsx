@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { Box, CircularProgress } from "@mui/material";
 import { useState } from "react";
 import { AuthContext } from "../contexts/AuthContext";
+import api from "../api";
 const AuthProvider = ({ user, setUser, ...props }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [token, setToken] = useState(null);
@@ -11,16 +12,10 @@ const AuthProvider = ({ user, setUser, ...props }) => {
     const checkSession = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await fetch(
-          import.meta.env.VITE_SERVER_URL + "/verify-token",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const res = await api.get("/verify-token");
 
-        const { user } = await res.json();
+        const { user } = await res.data;
+        console.log(user);
         setUser(user);
         setToken(token);
         setIsLoading(false);

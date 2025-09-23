@@ -1,90 +1,77 @@
-import { Box, Button, TextField } from "@mui/material"; // Імпортуємо UI-компоненти з Material UI
-import { useFormik } from "formik"; // Хук Formik для роботи з формами
-import { useContext } from "react";
-import * as Yup from "yup"; // Yup для валідації форм
+import { Box, Button, TextField } from "@mui/material";
+import { useFormik } from "formik";
+import { useContext, useState } from "react";
+import * as Yup from "yup";
 import { AuthContext } from "../../contexts/AuthContext";
+import api from "../../api"; // ✅ замість axios в api вже є axios
 
 function SignInPage() {
   const { setUser } = useContext(AuthContext);
+  const [serverError, setServerError] = useState(null);
+
   const formik = useFormik({
     initialValues: {
-      // Початкові значення полів форми
       email: "",
       password: "",
     },
-    validateOnChange: false, // Валідація лише при сабміті, не при кожному вводі
+    validateOnChange: false,
     validationSchema: Yup.object({
-      // Схема валідації форми
-      email: Yup.string().email("Invalid email address").required("Required"), // Перевірка email
+      email: Yup.string().email("Invalid email address").required("Required"),
       password: Yup.string()
-        .max(32, "Must be 32 characters or less") // Макс 32 символи
-        .required("Required"), // Обов’язкове поле
+        .max(32, "Must be 32 characters or less")
+        .required("Required"),
     }),
-    onSubmit: async (values, { resetForm }) => {
-      // Виконується при натисканні "Sign In"
+    onSubmit: async (values) => {
       try {
-        const response = await fetch(
-          import.meta.env.VITE_SERVER_URL + "/signin",
-          {
-            method: "POST", // Запит методом POST
-            headers: {
-              "Content-Type": "application/json", // Тіло запиту у форматі JSON
-            },
-            body: JSON.stringify(values), // Перетворюємо email+password у JSON
-          }
-        );
+        const response = await api.post("/signin", values);
 
-        const responseJson = await response.json(); // Отримуємо відповідь від сервера
-
-        if (!response.ok) {
-          // Якщо сервер повернув помилку (401/500 і т.д.)
-          throw new Error(`Server error: ${responseJson.message}`);
-        }
-
-        localStorage.setItem("token", responseJson.token); // Зберігаємо токен у localStorage
-        setUser(responseJson.user);
-        setServerError(null); // Скидаємо помилку (потрібен useState для setServerError)
-        return responseJson; // Повертаємо дані від сервера
+        localStorage.setItem("token", response.data.token);
+        setUser(response.data.user);
+        setServerError(null);
       } catch (error) {
-        setServerError(error.message); // Зберігаємо помилку (потрібен useState)
+        if (error.response) {
+          setServerError(error.response.data.message || "Server error");
+        } else {
+          setServerError(error.message);
+        }
       }
     },
   });
 
   return (
     <Box maxWidth={600} margin={"auto"}>
-      {" "}
-      {/* Контейнер з обмеженням ширини і центруванням */}
       <form noValidate onSubmit={formik.handleSubmit}>
-        {" "}
-        {/* Форма, яку обробляє Formik */}
-        {/* Поле для email */}
         <TextField
           label="Email"
           name="email"
           type="email"
-          value={formik.values.email} // Значення з formik
-          onChange={formik.handleChange} // Оновлення state
+          value={formik.values.email}
+          onChange={formik.handleChange}
           fullWidth
           margin="normal"
-          helperText={formik.errors.email} // Показує текст помилки
-          error={Boolean(formik.errors.email)} // Якщо є помилка — підсвічує червоним
+          helperText={formik.errors.email}
+          error={Boolean(formik.errors.email)}
         />
-        {/* Поле для пароля */}
         <TextField
           label="Password"
           name="password"
           type="password"
-          value={formik.values.password} // Значення з formik
-          onChange={formik.handleChange} // Оновлення state
+          value={formik.values.password}
+          onChange={formik.handleChange}
           fullWidth
           margin="normal"
-          helperText={formik.errors.password} // Показує текст помилки
-          error={Boolean(formik.errors.password)} // Якщо є помилка — підсвічує червоним
+          helperText={formik.errors.password}
+          error={Boolean(formik.errors.password)}
         />
-        {/* Кнопка входу */}
+
+        {serverError && (
+          <Box color="red" mt={1}>
+            {serverError}
+          </Box>
+        )}
+
         <Button
-          type="submit" // Викликає formik.onSubmit
+          type="submit"
           variant="contained"
           color="primary"
           fullWidth
@@ -96,4 +83,5 @@ function SignInPage() {
     </Box>
   );
 }
-export default SignInPage; // Експортуємо компонент
+
+export default SignInPage;

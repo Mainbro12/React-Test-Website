@@ -1,16 +1,15 @@
 import { useEffect, useState } from "react";
 import { Box, Card, CardContent, Typography, Grid } from "@mui/material";
+import api from "../../api";
 
 function CommentsPage() {
   const [comments, setComments] = useState([]);
 
   useEffect(() => {
     const fetchComments = async () => {
-      const response = await fetch(
-        import.meta.env.VITE_SERVER_URL + "/comments"
-      );
-      const data = await response.json();
-      setComments(data);
+      const response = await api.get("/comments");
+
+      setComments(response.data);
     };
     fetchComments();
   }, []);

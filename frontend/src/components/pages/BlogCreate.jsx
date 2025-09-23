@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { Box, Paper, Typography, TextField, Button } from "@mui/material";
-import { useContext } from "react";
-import { AuthContext } from "../../contexts/AuthContext";
+
+import api from "../../api";
 
 export default function BlogCreate() {
-  const { token } = useContext(AuthContext);
   const [formData, setFormData] = useState({
     title: "",
     image: "",
@@ -21,14 +20,8 @@ export default function BlogCreate() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    await fetch(import.meta.env.VITE_SERVER_URL + "/blog/create", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(formData),
-    })
+    await api
+      .post("/blog/create", formData)
       .then((response) => {
         if (response.ok) {
           alert("Форма відправлена ✅");
@@ -38,7 +31,7 @@ export default function BlogCreate() {
           image: "",
           description: "",
         });
-        return response.json();
+        return response.data;
       })
       .catch((error) => {
         console.log(error);

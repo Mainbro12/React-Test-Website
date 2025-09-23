@@ -17,6 +17,8 @@ const AppLayout = () => {
           display: "flex",
           flexDirection: "column",
           minHeight: "100vh",
+          bgcolor: "background.default",
+          color: "text.primary",
         }}
       >
         <ResponsiveAppBar />

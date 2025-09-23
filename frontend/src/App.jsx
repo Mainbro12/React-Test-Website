@@ -15,7 +15,7 @@ import AuthProvider from "./providers/AuthProvider.jsx";
 
 function App() {
   const [user, setUser] = useState(null);
-
+  console.log(user);
   const router = createBrowserRouter([
     {
       element: (

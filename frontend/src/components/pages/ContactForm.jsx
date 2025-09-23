@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { TextField, Button, Box, Typography, Paper } from "@mui/material";
+import api from "../../api";
 
 export default function ContactForm() {
   const [formData, setFormData] = useState({
@@ -20,15 +21,7 @@ export default function ContactForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const res = await fetch(import.meta.env.VITE_SERVER_URL + "/contact-form", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(formData),
-    });
-
-    const data = await res.json();
+    await api.post("/contact-form", formData);
 
     alert("Форма відправлена ✅");
     setFormData({

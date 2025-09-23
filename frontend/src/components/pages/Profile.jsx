@@ -2,6 +2,7 @@ import { Avatar } from "@mui/material";
 import { useContext } from "react";
 import { useState } from "react";
 import { AuthContext } from "../../contexts/AuthContext";
+import api from "../../api";
 
 function ProfilePage() {
   const { user, setUser, token } = useContext(AuthContext);
@@ -24,20 +25,13 @@ function ProfilePage() {
     formData.append("avatar", profileData.avatar);
 
     try {
-      const res = await fetch(import.meta.env.VITE_SERVER_URL + "/profile", {
-        method: "POST",
-        "Content-Type": "application/json",
-        body: formData,
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const res = await api.post("/profile", formData);
       if (!res.ok) {
         console.error("Server error", res.status);
         return;
       }
 
-      const data = await res.json();
+      const data = await res.data;
       setUser((prevUser) => ({ ...prevUser, avatar: data.user.avatar }));
     } catch (err) {
       console.error(err);

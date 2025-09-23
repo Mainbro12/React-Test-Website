@@ -75,7 +75,7 @@ function ResponsiveAppBar() {
                 textDecoration: "none",
               }}
             >
-              Main Page
+              Mercury
             </Typography>
           </Link>
 
