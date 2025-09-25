@@ -5,7 +5,7 @@ import { AuthContext } from "../../contexts/AuthContext";
 import api from "../../api";
 
 function ProfilePage() {
-  const { user, setUser, token } = useContext(AuthContext);
+  const { user, setUser } = useContext(AuthContext);
   const [profileData, setProfileData] = useState({
     avatar: null, // тут зберігатиметься файл
   });
@@ -19,14 +19,18 @@ function ProfilePage() {
 
   // Відправка аватарки на сервер
   const handleSubmit = async (e) => {
-    e.preventDefault(); //
+    e.preventDefault();
 
     const formData = new FormData();
     formData.append("avatar", profileData.avatar);
 
     try {
-      const res = await api.post("/profile", formData);
-      if (!res.ok) {
+      const res = await api.post("/profile", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      if (res.status !== 200) {
         console.error("Server error", res.status);
         return;
       }
