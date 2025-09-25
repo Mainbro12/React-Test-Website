@@ -9,17 +9,18 @@ import {
 } from "@mui/material";
 import dayjs from "dayjs";
 import api from "../../api";
+import { Link } from "react-router";
 
 dayjs.locale("de");
 
 function BlogPage() {
-  const [blogs, setBlogs] = useState([]);
+  const [articles, setArticles] = useState([]);
 
   useEffect(() => {
     const fetchBlogs = async () => {
-      const response = await api.get("/blog");
+      const response = await api.get("/articles");
       const data = await response.data;
-      setBlogs(data);
+      setArticles(data);
     };
     fetchBlogs();
   }, []);
@@ -34,53 +35,55 @@ function BlogPage() {
         columns={{ xs: 1, sm: 4, md: 12, lg: 16 }}
         spacing={{ xs: 2, md: 3 }}
       >
-        {blogs.map((blog, index) => (
+        {articles.map((article, index) => (
           <Grid
             size={{ xs: 2, sm: 2, md: 4, lg: 4 }}
             width={"100%"}
             key={index}
           >
-            <Card
-              sx={{
-                borderRadius: 3,
-                boxShadow: 3,
-                height: "100%",
-                display: "flex",
-                flexDirection: "column",
-              }}
-            >
-              {blog.image && (
-                <CardMedia
-                  component="img"
-                  height="200"
-                  image={blog.image}
-                  alt={blog.title}
-                  sx={{ objectFit: "cover" }}
-                />
-              )}
+            <Link to={`/article/${article.slug}`}>
+              <Card
+                sx={{
+                  borderRadius: 3,
+                  boxShadow: 3,
+                  height: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+              >
+                {article.image && (
+                  <CardMedia
+                    component="img"
+                    height="200"
+                    image={article.image}
+                    alt={article.title}
+                    sx={{ objectFit: "cover" }}
+                  />
+                )}
 
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  {blog.title}
-                </Typography>
-                <Typography
-                  variant="body1"
-                  sx={{ mt: 1, whiteSpace: "pre-line" }}
-                >
-                  {blog.description}
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ mt: 2 }}
-                  >
-                    {`👨🏻‍💻Author: ${blog.user.firstname} ${blog.user.lastname}`}
-                    <br />
-                    Posted on:
-                    {dayjs(blog.created_at).format("DD/MM/YYYY HH:mm")}
+                <CardContent>
+                  <Typography variant="h6" gutterBottom>
+                    {article.title}
                   </Typography>
-                </Typography>
-              </CardContent>
-            </Card>
+                  <Typography
+                    variant="body1"
+                    sx={{ mt: 1, whiteSpace: "pre-line" }}
+                  >
+                    {article.description}
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ mt: 2 }}
+                    >
+                      {`👨🏻‍💻Author: ${article.user.firstname} ${article.user.lastname}`}
+                      <br />
+                      Posted on:
+                      {dayjs(article.created_at).format("DD/MM/YYYY HH:mm")}
+                    </Typography>
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Link>
           </Grid>
         ))}
       </Grid>

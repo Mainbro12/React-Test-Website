@@ -2,10 +2,6 @@ import reactLogo from "../../assets/react.svg";
 import viteLogo from "../../../public/vite.svg";
 import { Container } from "@mui/material";
 
-function App() {
-  return <MercuryIcon width={100} height={100} />;
-}
-
 function HomePage() {
   return (
     <Container>

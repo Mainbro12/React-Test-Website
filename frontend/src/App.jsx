@@ -12,6 +12,7 @@ import HomePage from "./components/pages/HomePage.jsx";
 import { useEffect, useState } from "react";
 import ProfilePage from "./components/pages/Profile.jsx";
 import AuthProvider from "./providers/AuthProvider.jsx";
+import ArticlePage from "./components/pages/ArticlePage.jsx";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -28,6 +29,10 @@ function App() {
         {
           path: "/",
           element: <HomePage />,
+        },
+        {
+          path: "/article/:slug",
+          element: <ArticlePage />,
         },
         {
           path: "/contact-form",

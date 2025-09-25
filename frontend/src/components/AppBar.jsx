@@ -218,7 +218,6 @@ function ResponsiveAppBar() {
                 </MenuItem>
               ))}
             </Menu>
-
             <ToggleThemeBtn />
           </Box>
         </Toolbar>

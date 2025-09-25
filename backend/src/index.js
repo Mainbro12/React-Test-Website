@@ -9,6 +9,7 @@ import path from "path";
 import fs from "fs";
 import withAuth from "./middleware.js";
 import APP_CONFIG from "./config.js";
+import generateSlug from "./utils/generate-slug.js";
 
 const app = express();
 const port = APP_CONFIG.SERVER_PORT || 3000;
@@ -52,25 +53,58 @@ app.get("/comments", async function (req, res) {
 
 // blog
 
-app.get("/blog", async function (req, res) {
-  const allBlogs = await db.any(`
+app.get("/articles", async function (req, res) {
+  const allArticles = await db.any(`
   SELECT 
-    blog.*,
+    articles.*,
     json_build_object(
       'id', users.id,
       'firstname', users.firstname,
       'lastname', users.lastname,
       'email', users.email 
     ) AS user
-  FROM blog
-  JOIN users ON blog.user_id = users.id
-  ORDER BY blog.created_at DESC
+  FROM articles
+  JOIN users ON articles.user_id = users.id
+  ORDER BY articles.created_at DESC
 `);
-  res.json(allBlogs);
+  res.json(allArticles);
 });
 
-app.post("/blog/create", withAuth, async function (req, res) {
+app.get("/article/:slug", async function (req, res) {
+  try {
+    const { slug } = req.params;
+
+    const article = await db.oneOrNone(
+      `
+      SELECT 
+        articles.*,
+        json_build_object(
+          'id', users.id,
+          'firstname', users.firstname,
+          'lastname', users.lastname,
+          'email', users.email 
+        ) AS user
+      FROM articles
+      JOIN users ON articles.user_id = users.id
+      WHERE articles.slug = $1
+      `,
+      [slug]
+    );
+
+    if (!article) {
+      return res.status(404).json({ error: "Article not found" });
+    }
+
+    res.json(article);
+  } catch (err) {
+    console.error("Error fetching article by slug:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+app.post("/article/create", withAuth, async function (req, res) {
   const email = req.email;
+  const slug = generateSlug(req.body.title);
 
   // get user id from DB
   const user = await db.one("SELECT id FROM users WHERE email = ${email}", {
@@ -78,8 +112,8 @@ app.post("/blog/create", withAuth, async function (req, res) {
   });
 
   await db.any(
-    "INSERT INTO blog(title, image, description, user_id) VALUES(${title}, ${image}, ${description}, ${user.id} )",
-    { ...req.body, user }
+    "INSERT INTO articles(title, image, description, content, slug, user_id) VALUES(${title}, ${image}, ${description}, ${content}, ${slug}, ${user.id} )",
+    { ...req.body, user, slug }
   );
 
   res.send({ message: "Дані збережено!", data: req.body });
