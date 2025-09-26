@@ -6,7 +6,7 @@ import Footer from "../Footer";
 const AppLayout = () => {
   const muiTheme = createTheme({
     colorSchemes: {
-      dark: true,
+      light: true,
     },
   });
 

@@ -47,7 +47,6 @@ function ResponsiveAppBar() {
   const leftLinks = [
     { title: "Comments", link: "/comments" },
     { title: "Contact", link: "/contact-form" },
-    { title: "My Blog", link: "/blog" },
     { title: "Form Blog", link: "/blog/create" },
   ];
 

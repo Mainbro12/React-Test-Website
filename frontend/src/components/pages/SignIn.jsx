@@ -4,6 +4,7 @@ import { useContext, useState } from "react";
 import * as Yup from "yup";
 import { AuthContext } from "../../contexts/AuthContext";
 import api from "../../api"; // ✅ замість axios в api вже є axios
+import PasswordInput from "../UI/PasswordInput";
 
 function SignInPage() {
   const { setUser } = useContext(AuthContext);
@@ -52,7 +53,7 @@ function SignInPage() {
           helperText={formik.errors.email}
           error={Boolean(formik.errors.email)}
         />
-        <TextField
+        <PasswordInput
           label="Password"
           name="password"
           type="password"
