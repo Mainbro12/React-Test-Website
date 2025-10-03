@@ -1,13 +1,12 @@
 import { Avatar } from "@mui/material";
-import { useContext } from "react";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { AuthContext } from "../../contexts/AuthContext";
 import api from "../../api";
 
 function ProfilePage() {
   const { user, setUser } = useContext(AuthContext);
   const [profileData, setProfileData] = useState({
-    avatar: null, // тут зберігатиметься файл
+    avatar: null,
   });
 
   const handleChange = (e) => {
@@ -17,10 +16,8 @@ function ProfilePage() {
     });
   };
 
-  // Відправка аватарки на сервер
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     const formData = new FormData();
     formData.append("avatar", profileData.avatar);
 
@@ -34,7 +31,6 @@ function ProfilePage() {
         console.error("Server error", res.status);
         return;
       }
-
       const data = await res.data;
       setUser((prevUser) => ({ ...prevUser, avatar: data.user.avatar }));
     } catch (err) {
@@ -44,27 +40,43 @@ function ProfilePage() {
   };
 
   return (
-    <div>
-      <h2>Завантажити Аватарку:</h2>
+    <div
+      style={{
+        backgroundImage: `url("https://images.pexels.com/photos/33915743/pexels-photo-33915743.jpeg")`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        minHeight: "300px",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "40px 0",
+        borderRadius: "40px",
+      }}
+    >
+      <h2 style={{ color: "white", textShadow: "0px 0px 5px black" }}>
+        Завантажити Аватарку
+      </h2>
+
       <Avatar
-        alt="Remy Sharp"
+        alt="User Avatar"
         src={
           import.meta.env.VITE_SERVER_URL +
           user.avatar +
-          "?timeststamp=" +
+          "?timestamp=" +
           Date.now()
         }
         sx={{
-          width: 200,
-          height: 200,
-          margin: "auto",
-          marginY: 6,
-          padding: 2,
-          border: "1px solid lightgrey",
+          width: 300,
+          height: 300,
+          margin: "20px auto",
+          border: "3px solid white",
+          boxShadow: "0 0 15px rgba(0,0,0,0.5)",
         }}
       >
         {user.firstname[0].toUpperCase() + user.lastname[0].toUpperCase()}
       </Avatar>
+
       <form onSubmit={handleSubmit}>
         <input
           type="file"

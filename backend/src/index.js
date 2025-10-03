@@ -82,7 +82,7 @@ app.get("/article/:slug", async function (req, res) {
           'id', users.id,
           'firstname', users.firstname,
           'lastname', users.lastname,
-          'email', users.email 
+          'email', users.email
         ) AS user
       FROM articles
       JOIN users ON articles.user_id = users.id
@@ -112,7 +112,7 @@ app.post("/article/create", withAuth, async function (req, res) {
   });
 
   await db.any(
-    "INSERT INTO articles(title, image, description, content, slug, user_id) VALUES(${title}, ${image}, ${description}, ${content}, ${slug}, ${user.id} )",
+    "INSERT INTO articles(title, image, description, content, slug, user_id, category_id) VALUES(${title}, ${image}, ${description}, ${content}, ${slug}, ${user.id}, ${category_id})",
     { ...req.body, user, slug }
   );
 
@@ -233,7 +233,73 @@ app.post("/profile", withAuth, upload.single("avatar"), async (req, res) => {
   }
 });
 
-// LOGOUT
+// Category
+
+app.post("/category/create", withAuth, async function (req, res) {
+  const slug = generateSlug(req.body.name);
+
+  await db.any(
+    "INSERT INTO categories(name, img, slug) VALUES(${name}, ${img}, ${slug})",
+    { ...req.body, slug }
+  );
+
+  res.send({ message: "Дані збережено!", data: req.body });
+});
+
+app.get("/categories", async function (req, res) {
+  const categories = await db.any(` 
+ SELECT * FROM categories;
+`);
+  res.json({ categories });
+});
+
+app.get("/category/:slug", async function (req, res) {
+  try {
+    const { slug } = req.params;
+
+    const category = await db.oneOrNone(
+      `
+      SELECT 
+        c.*,
+        COALESCE(
+          json_agg(
+            json_build_object(
+              'id', a.id,
+              'title', a.title,
+              'slug', a.slug,
+              'description', a.description,
+              'image', a.image,
+              'created_at', a.created_at,
+              'user', json_build_object(
+                'id', u.id,
+                'firstname', u.firstname,
+                'lastname', u.lastname,
+                'email', u.email
+              )
+            )
+          ) FILTER (WHERE a.id IS NOT NULL),
+          '[]'
+        ) AS articles
+      FROM categories c
+      LEFT JOIN articles a ON a.category_id = c.id
+      LEFT JOIN users u ON u.id = a.user_id
+      WHERE c.slug = $1
+      GROUP BY c.id
+      `,
+      [slug]
+    );
+
+    if (!category) {
+      return res.status(404).json({ error: "Category not found" });
+    }
+
+    res.json(category);
+  } catch (err) {
+    console.error("Error fetching category by slug:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+  res.status(201).send({ message: "Користувача створено", data: req.body });
+});
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);

@@ -1,14 +1,8 @@
 import { useState } from "react";
 import { TextField, InputAdornment, IconButton } from "@mui/material";
-import { Visibility, VisibilityOff } from "@mui/icons-material";
+import { Visibility } from "@mui/icons-material";
 import EyeClosedIcon from "./svg-icons/EyeClosedIcon";
 
-/**
- * PasswordInput - a TextField that supports show/hide password
- * Accepts all props that TextField accepts (label, value, onChange, autoComplete, variant, etc.)
- *
- * @param {import('@mui/material').TextFieldProps} props
- */
 function PasswordInput(props) {
   const [showPassword, setShowPassword] = useState(false);
 

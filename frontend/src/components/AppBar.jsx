@@ -11,43 +11,32 @@ import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
 import Tooltip from "@mui/material/Tooltip";
 import MenuItem from "@mui/material/MenuItem";
-import AdbIcon from "@mui/icons-material/Adb";
 import { Link } from "react-router";
 import { useNavigate } from "react-router";
 import { useContext } from "react";
 import { AuthContext } from "../contexts/AuthContext";
 import ToggleThemeBtn from "./UI/ThemeToggleBtn";
+import CategoriesMenu from "./CategoriesMenu";
 
-function ResponsiveAppBar() {
+function ResponsiveAppBar({ categories }) {
   const { user, handleLogout } = useContext(AuthContext);
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
-  let navigate = useNavigate();
+  const navigate = useNavigate();
 
-  const handleOpenNavMenu = (event) => {
-    setAnchorElNav(event.currentTarget);
-  };
-  const handleOpenUserMenu = (event) => {
-    setAnchorElUser(event.currentTarget);
-  };
-
+  const handleOpenNavMenu = (event) => setAnchorElNav(event.currentTarget);
+  const handleCloseNavMenu = () => setAnchorElNav(null);
+  const handleOpenUserMenu = (event) => setAnchorElUser(event.currentTarget);
+  const handleCloseUserMenu = () => setAnchorElUser(null);
   const handleSettingsClick = (action) => {
     handleCloseUserMenu();
     action();
   };
 
-  const handleCloseNavMenu = () => {
-    setAnchorElNav(null);
-  };
-
-  const handleCloseUserMenu = () => {
-    setAnchorElUser(null);
-  };
-
   const leftLinks = [
-    { title: "Comments", link: "/comments" },
     { title: "Contact", link: "/contact-form" },
-    { title: "Form Blog", link: "/blog/create" },
+    { title: "Add Article", link: "/add-article" },
+    { title: "Add Category", link: "/add-category" },
   ];
 
   const settings = [
@@ -59,164 +48,117 @@ function ResponsiveAppBar() {
     <AppBar position="sticky">
       <Container>
         <Toolbar disableGutters>
-          <AdbIcon sx={{ display: { xs: "none", md: "flex" }, mr: 1 }} />
-          <Link to="/">
-            <Typography
-              variant="h6"
-              noWrap
-              sx={{
-                mr: 2,
-                display: { xs: "none", md: "flex" },
-                fontFamily: "monospace",
-                fontWeight: 700,
-                letterSpacing: ".3rem",
-                color: "white",
-                textDecoration: "none",
-              }}
-            >
-              Mercury
-            </Typography>
-          </Link>
+          <Typography
+            variant="h6"
+            component={Link}
+            to="/"
+            sx={{
+              mr: 2,
+              display: { xs: "none", md: "flex" },
+              fontFamily: "monospace",
+              fontWeight: 700,
+              letterSpacing: ".3rem",
+              color: "white",
+              textDecoration: "none",
+            }}
+          >
+            Mercury
+          </Typography>
 
+          {/* Мобільне меню */}
           <Box sx={{ flexGrow: 1, display: { xs: "flex", md: "none" } }}>
             <IconButton
               size="large"
-              aria-label="account of current user"
-              aria-controls="menu-appbar"
-              aria-haspopup="true"
+              aria-label="menu"
               onClick={handleOpenNavMenu}
               color="inherit"
             >
               <MenuIcon />
             </IconButton>
             <Menu
-              id="menu-appbar"
               anchorEl={anchorElNav}
-              anchorOrigin={{
-                vertical: "bottom",
-                horizontal: "left",
-              }}
-              keepMounted
-              transformOrigin={{
-                vertical: "top",
-                horizontal: "left",
-              }}
               open={Boolean(anchorElNav)}
               onClose={handleCloseNavMenu}
-              sx={{ display: { xs: "block", md: "none" } }}
+              anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+              transformOrigin={{ vertical: "top", horizontal: "left" }}
             >
               {leftLinks.map((page) => (
                 <MenuItem key={page.link} onClick={handleCloseNavMenu}>
-                  <Typography sx={{ textAlign: "center" }}>
+                  <Typography
+                    component={Link}
+                    to={page.link}
+                    sx={{
+                      textAlign: "center",
+                      color: "inherit",
+                      textDecoration: "none",
+                    }}
+                  >
                     {page.title}
                   </Typography>
                 </MenuItem>
               ))}
+              <CategoriesMenu categories={categories} />
             </Menu>
           </Box>
-
-          <AdbIcon sx={{ display: { xs: "flex", md: "none" }, mr: 1 }} />
-          <Typography
-            variant="h5"
-            noWrap
-            component="a"
-            href="#app-bar-with-responsive-menu"
-            sx={{
-              mr: 2,
-              display: { xs: "flex", md: "none" },
-              flexGrow: 1,
-              fontFamily: "monospace",
-              fontWeight: 700,
-              letterSpacing: ".3rem",
-              color: "inherit",
-              textDecoration: "none",
-            }}
+          <CategoriesMenu categories={categories} />
+          <Box
+            sx={{ flexGrow: 1, display: { xs: "none", md: "flex" }, gap: 1 }}
           >
-            LOGO
-          </Typography>
-          <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" } }}>
             {leftLinks.map((page) => (
-              <Link to={page.link}>
-                <Button
-                  key={page.title}
-                  onClick={handleCloseNavMenu}
-                  sx={{ my: 2, color: "white", display: "block" }}
-                >
-                  {page.title}
-                </Button>
-              </Link>
+              <Button
+                key={page.title}
+                component={Link}
+                to={page.link}
+                sx={{ my: 2, color: "white" }}
+              >
+                {page.title}
+              </Button>
             ))}
           </Box>
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              flexDirection: "row",
-              flexGrow: 0,
-              gap: 2.5,
-            }}
-          >
-            {!user ? (
-              <>
-                <Link to={"/signin"}>
-                  <Button
-                    onClick={handleCloseNavMenu}
-                    sx={{ my: 2, color: "white", display: "block" }}
-                  >
-                    {"Sign In"}
-                  </Button>
-                </Link>
-                <Link to={"/signup"}>
-                  <Button
-                    onClick={handleCloseNavMenu}
-                    sx={{ my: 2, color: "white", display: "block" }}
-                  >
-                    {"Sign Up"}
-                  </Button>
-                </Link>
-              </>
-            ) : null}
 
-            {user ? (
-              <Tooltip title="Open settings">
-                <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                  <Avatar
-                    alt="Remy Sharp"
-                    src={import.meta.env.VITE_SERVER_URL + user.avatar}
-                  >
-                    {user.firstname[0].toUpperCase() +
-                      user.lastname[0].toUpperCase()}
-                  </Avatar>
-                </IconButton>
-              </Tooltip>
-            ) : null}
-            <Menu
-              sx={{ mt: "45px" }}
-              id="menu-appbar"
-              anchorEl={anchorElUser}
-              anchorOrigin={{
-                vertical: "top",
-                horizontal: "right",
-              }}
-              keepMounted
-              transformOrigin={{
-                vertical: "top",
-                horizontal: "right",
-              }}
-              open={Boolean(anchorElUser)}
-              onClose={handleCloseUserMenu}
-            >
-              {settings.map((setting) => (
-                <MenuItem
-                  key={setting}
-                  onClick={() => handleSettingsClick(setting.action)}
+          {/* Кнопки користувача */}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2.5 }}>
+            {!user && (
+              <>
+                <Button component={Link} to="/signin" sx={{ color: "white" }}>
+                  Sign In
+                </Button>
+                <Button component={Link} to="/signup" sx={{ color: "white" }}>
+                  Sign Up
+                </Button>
+              </>
+            )}
+            {user && (
+              <>
+                <Tooltip title="Open settings">
+                  <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
+                    <Avatar src={import.meta.env.VITE_SERVER_URL + user.avatar}>
+                      {user.firstname[0].toUpperCase() +
+                        user.lastname[0].toUpperCase()}
+                    </Avatar>
+                  </IconButton>
+                </Tooltip>
+                <Menu
+                  anchorEl={anchorElUser}
+                  open={Boolean(anchorElUser)}
+                  onClose={handleCloseUserMenu}
+                  anchorOrigin={{ vertical: "top", horizontal: "right" }}
+                  transformOrigin={{ vertical: "top", horizontal: "right" }}
+                  sx={{ mt: "45px" }}
                 >
-                  <Typography sx={{ textAlign: "center" }}>
-                    {setting.title}
-                  </Typography>
-                </MenuItem>
-              ))}
-            </Menu>
+                  {settings.map((setting) => (
+                    <MenuItem
+                      key={setting.title}
+                      onClick={() => handleSettingsClick(setting.action)}
+                    >
+                      <Typography sx={{ textAlign: "center" }}>
+                        {setting.title}
+                      </Typography>
+                    </MenuItem>
+                  ))}
+                </Menu>
+              </>
+            )}
             <ToggleThemeBtn />
           </Box>
         </Toolbar>
@@ -224,4 +166,5 @@ function ResponsiveAppBar() {
     </AppBar>
   );
 }
+
 export default ResponsiveAppBar;

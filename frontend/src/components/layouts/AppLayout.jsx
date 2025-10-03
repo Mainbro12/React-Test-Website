@@ -3,10 +3,10 @@ import { Outlet } from "react-router";
 import ResponsiveAppBar from "../AppBar";
 import Footer from "../Footer";
 
-const AppLayout = () => {
+const AppLayout = ({ isUseContainer = true, categories }) => {
   const muiTheme = createTheme({
     colorSchemes: {
-      light: true,
+      dark: true,
     },
   });
 
@@ -21,16 +21,20 @@ const AppLayout = () => {
           color: "text.primary",
         }}
       >
-        <ResponsiveAppBar />
-        <Container
-          component="main"
-          sx={{
-            flexGrow: 1,
-            py: 4,
-          }}
-        >
+        <ResponsiveAppBar categories={categories} />
+        {isUseContainer ? (
+          <Container
+            component="main"
+            sx={{
+              flexGrow: 1,
+              py: 4,
+            }}
+          >
+            <Outlet />
+          </Container>
+        ) : (
           <Outlet />
-        </Container>
+        )}
 
         <Footer />
       </Box>

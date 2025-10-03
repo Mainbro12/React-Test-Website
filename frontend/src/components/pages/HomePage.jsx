@@ -9,39 +9,100 @@ import {
 } from "@mui/material";
 import dayjs from "dayjs";
 import api from "../../api";
-import { Link } from "react-router";
+import StyledLink from "../UI/StyledLink.jsx";
+import {
+  FacebookShareButton,
+  TwitterShareButton,
+  TelegramShareButton,
+  FacebookIcon,
+  TwitterIcon,
+  TelegramIcon,
+} from "react-share";
+import SearchIcon from "@mui/icons-material/Search";
+import { TextField, InputAdornment } from "@mui/material";
 
 dayjs.locale("de");
 
 function BlogPage() {
   const [articles, setArticles] = useState([]);
+  const [filteredArticles, setFilteredArticles] = useState([]);
+
+  const handleSearch = (query) => {
+    if (!query) {
+      setFilteredArticles(articles);
+    } else {
+      setFilteredArticles(
+        articles.filter((article) =>
+          article.title.toLowerCase().includes(query.toLowerCase())
+        )
+      );
+    }
+  };
 
   useEffect(() => {
     const fetchBlogs = async () => {
       const response = await api.get("/articles");
       const data = await response.data;
       setArticles(data);
+      setFilteredArticles(data); // для пошуку
     };
     fetchBlogs();
   }, []);
 
   return (
     <Box sx={{ flexGrow: 1 }}>
+      <TextField
+        label="Search articles..."
+        variant="outlined"
+        fullWidth
+        sx={{ mb: 3 }}
+        onChange={(e) => handleSearch(e.target.value)}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <SearchIcon />
+            </InputAdornment>
+          ),
+        }}
+      />
       <Typography variant="h4" gutterBottom textAlign="center">
         Blog Articles:
       </Typography>
+      <Box sx={{ display: "flex", gap: 2, justifyContent: "center", mb: 3 }}>
+        <FacebookShareButton
+          url={window.location.href}
+          quote="Check out this blog!"
+        >
+          <FacebookIcon size={40} round />
+        </FacebookShareButton>
+
+        <TwitterShareButton
+          url={window.location.href}
+          title="Check out this blog!"
+        >
+          <TwitterIcon size={40} round />
+        </TwitterShareButton>
+
+        <TelegramShareButton
+          url={window.location.href}
+          title="Check out this blog!"
+        >
+          <TelegramIcon size={40} round />
+        </TelegramShareButton>
+      </Box>
+
       <Grid
         container
         columns={{ xs: 1, sm: 4, md: 12, lg: 16 }}
         spacing={{ xs: 2, md: 3 }}
       >
-        {articles.map((article, index) => (
+        {filteredArticles.map((article, index) => (
           <Grid
             size={{ xs: 2, sm: 2, md: 4, lg: 4 }}
             width={"100%"}
             key={index}
           >
-            <Link to={`/article/${article.slug}`}>
+            <StyledLink to={`/article/${article.slug}`}>
               <Card
                 sx={{
                   borderRadius: 3,
@@ -69,7 +130,21 @@ function BlogPage() {
                     variant="body1"
                     sx={{ mt: 1, whiteSpace: "pre-line" }}
                   >
-                    {article.description}
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        display: "-webkit-box",
+                        WebkitLineClamp: 4,
+                        WebkitBoxOrient: "vertical",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        wordBreak: "break-word",
+                        whiteSpace: "normal",
+                      }}
+                    >
+                      {article.description}
+                    </Typography>
+
                     <Typography
                       variant="body2"
                       color="text.secondary"
@@ -83,7 +158,7 @@ function BlogPage() {
                   </Typography>
                 </CardContent>
               </Card>
-            </Link>
+            </StyledLink>
           </Grid>
         ))}
       </Grid>
