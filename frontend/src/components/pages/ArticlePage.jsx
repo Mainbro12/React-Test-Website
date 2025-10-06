@@ -29,7 +29,7 @@ function ArticlePage() {
   }, []);
 
   return (
-    <Container>
+    <Container sx={{ py: 4 }}>
       <div dangerouslySetInnerHTML={{ __html: article?.content }} />
     </Container>
   );
