@@ -37,6 +37,8 @@ function ResponsiveAppBar({ categories }) {
     { title: "Contact", link: "/contact-form" }, // посилання зліва
     { title: "Add Article", link: "/add-article" },
     { title: "Add Category", link: "/add-category" },
+    { title: "FAQ", link: "/faqs" },
+    { title: "Blog Rules", link: "/blog-submission-rules" },
   ];
 
   const settings = [

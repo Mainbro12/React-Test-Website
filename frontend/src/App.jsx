@@ -15,6 +15,9 @@ import CategoryPage from "./components/pages/CategoryPage.jsx";
 import api from "./api.js";
 import AddCategoryPage from "./components/pages/AddCategoryPage.jsx";
 import AddArticlePage from "./components/pages/AddArticlePage.jsx";
+import FaqsPage from "./components/pages/FaqsPage.jsx";
+import FormCreateBlogPage from "./components/pages/FormCreateBlogPage.jsx";
+import BlogSubmissionRulesPage from "./components/pages/BlogSubmissionRulesPage.jsx";
 
 function App() {
   const [categories, setCategories] = useState(null);
@@ -52,6 +55,18 @@ function App() {
         {
           path: "/comments",
           element: <CommentsPage />,
+        },
+        {
+          path: "/faqs",
+          element: <FaqsPage />,
+        },
+        {
+          path: "/form-create-blog",
+          element: <FormCreateBlogPage />,
+        },
+        {
+          path: "/blog-submission-rules",
+          element: <BlogSubmissionRulesPage />,
         },
 
         {
