@@ -18,6 +18,7 @@ import AddArticlePage from "./components/pages/AddArticlePage.jsx";
 import FaqsPage from "./components/pages/FaqsPage.jsx";
 import FormCreateBlogPage from "./components/pages/FormCreateBlogPage.jsx";
 import BlogSubmissionRulesPage from "./components/pages/BlogSubmissionRulesPage.jsx";
+import AboutPage from "./components/pages/AboutUs.jsx";
 
 function App() {
   const [categories, setCategories] = useState(null);
@@ -80,6 +81,10 @@ function App() {
         {
           path: "/profile",
           element: user ? <ProfilePage /> : <Navigate to="/signin" replace />,
+        },
+        {
+          path: "/about-us",
+          element: <AboutPage />,
         },
 
         {

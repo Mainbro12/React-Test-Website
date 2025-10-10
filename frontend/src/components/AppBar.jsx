@@ -34,15 +34,15 @@ function ResponsiveAppBar({ categories }) {
   };
 
   const leftLinks = [
-    { title: "Contact", link: "/contact-form" }, // посилання зліва
+    { title: "About Us", link: "/about-us" },
+    { title: "Contact", link: "/contact-form" },
     { title: "Add Article", link: "/add-article" },
     { title: "Add Category", link: "/add-category" },
     { title: "FAQ", link: "/faqs" },
-    { title: "Blog Rules", link: "/blog-submission-rules" },
   ];
 
   const settings = [
-    { title: "Profile", action: () => navigate("/profile") }, // дії в меню користувача
+    { title: "Profile", action: () => navigate("/profile") },
     { title: "Logout", action: () => handleLogout() },
   ];
 
@@ -99,7 +99,7 @@ function ResponsiveAppBar({ categories }) {
                   <Typography
                     variant="button"
                     component={Link}
-                    to={page.link} // перехід по кліку
+                    to={page.link}
                     sx={{
                       textAlign: "center",
                       textTransform: "uppercase",

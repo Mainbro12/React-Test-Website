@@ -84,6 +84,7 @@ function ProfilePage() {
           accept="image/*"
           onChange={handleChange}
         />
+
         <button type="submit">Завантажити аватарку</button>
       </form>
     </div>

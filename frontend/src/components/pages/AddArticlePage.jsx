@@ -16,44 +16,32 @@ import Select from "@mui/material/Select";
 import api from "../../api";
 import MyEditor from "../UI/Editor";
 import { slateToHtml } from "@slate-serializers/html";
+import StyledLink from "../UI/StyledLink";
 
 export default function AddArticlePage({ categories }) {
   const [formData, setFormData] = useState({
     title: "",
+    description: "",
     image: "",
     content: [
       {
         type: "paragraph",
-        children: [
-          {
-            text: "Here you can write a veeeery long text!",
-          },
-          { text: "", bold: true },
-          {
-            text: "",
-          },
-        ],
+        children: [{ text: "Here you can write a veeeery long text!" }],
       },
     ],
-    category_id: null,
+    category_id: "",
   });
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [e.target.name]:
+        e.target.type === "number" ? Number(e.target.value) : e.target.value,
     });
   };
 
   const handleEditorChange = (value) => {
-    const content = {
-      target: {
-        name: "content",
-        value,
-      },
-    };
-
-    handleChange(content);
+    setFormData((prev) => ({ ...prev, content: value }));
   };
 
   const handleSubmit = async (e) => {
@@ -66,24 +54,34 @@ export default function AddArticlePage({ categories }) {
       };
 
       const response = await api.post("/article/create", preparedFormData);
-      if (response.status === 200) {
+
+      if (response.status === 200 || response.status === 201) {
         alert("Форма відправлена ✅");
         setFormData({
           title: "",
-          image: "",
           description: "",
-          content: [],
+          image: "",
+          content: [
+            {
+              type: "paragraph",
+              children: [{ text: "" }],
+            },
+          ],
+          category_id: "",
         });
       }
     } catch (err) {
-      console.log(err);
+      console.error(err);
       alert("Помилка під час відправки форми ❌");
     }
   };
 
   return (
     <Box display="flex" justifyContent="center" alignItems="center" mt={5}>
-      <Paper elevation={3} sx={{ p: 4, borderRadius: 3 }}>
+      <Paper
+        elevation={3}
+        sx={{ p: 4, borderRadius: 3, width: "100%", maxWidth: 600 }}
+      >
         <Typography variant="h5" mb={2} textAlign="center">
           Blog Form
         </Typography>
@@ -95,7 +93,6 @@ export default function AddArticlePage({ categories }) {
               value={formData.title}
               onChange={handleChange}
               fullWidth
-              margin="normal"
               required
             />
             <TextField
@@ -104,7 +101,6 @@ export default function AddArticlePage({ categories }) {
               value={formData.description}
               onChange={handleChange}
               fullWidth
-              margin="normal"
               required
             />
             <TextField
@@ -113,7 +109,6 @@ export default function AddArticlePage({ categories }) {
               value={formData.image}
               onChange={handleChange}
               fullWidth
-              margin="normal"
               required
             />
 
@@ -123,8 +118,6 @@ export default function AddArticlePage({ categories }) {
                 labelId="categories"
                 id="categories"
                 name="category_id"
-                label="Category"
-                sx={{ textAlign: "left" }}
                 value={formData.category_id || ""}
                 onChange={handleChange}
               >
@@ -138,6 +131,13 @@ export default function AddArticlePage({ categories }) {
 
             <MyEditor value={formData.content} onChange={handleEditorChange} />
           </Stack>
+
+          <Box mt={2}>
+            <StyledLink to="/blog-submission-rules">
+              Please read the blog submission rules.
+            </StyledLink>
+          </Box>
+
           <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }}>
             Submit
           </Button>

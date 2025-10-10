@@ -2,330 +2,205 @@ import express from "express";
 import bodyParser from "body-parser";
 import cors from "cors";
 import jwt from "jsonwebtoken";
-import db from "./db.js";
 import bcrypt from "bcryptjs";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import { PrismaClient } from "@prisma/client";
 import withAuth from "./middleware.js";
 import APP_CONFIG from "./config.js";
 import generateSlug from "./utils/generate-slug.js";
 
 const app = express();
-const port = APP_CONFIG.SERVER_PORT || 3000; // Port
+const port = APP_CONFIG.SERVER_PORT || 3000;
 const SECRET_KEY = APP_CONFIG.JWT_SECRET_KEY;
+const prisma = new PrismaClient();
 
-// обробляє / зберігає у папці
+// Multer для завантаження файлів
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, "uploads/"),
   filename: (req, file, cb) => {
-    // Just give it a temporary unique name
     const ext = path.extname(file.originalname);
     cb(null, Date.now() + ext);
   },
 });
-
 const upload = multer({ storage });
 const uploadDir = path.join(process.cwd(), "uploads");
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
+if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
-app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
-app.use(bodyParser.json()); // для парсингу JSON
-app.use(bodyParser.urlencoded({ extended: true })); // для form-data
 app.use("/uploads", express.static(uploadDir));
 
-// створення запиту та форми для сторінки
-app.post("/contact-form", async function (req, res) {
-  await db.any(
-    "INSERT INTO comments(firstname, lastname, numberphone, email, comment) VALUES(${firstname}, ${lastname}, ${numberphone}, ${email}, ${comment})",
-    req.body
-  );
-
-  res.send({ message: "Дані збережено!", data: req.body });
+// ====================== CONTACT FORM ======================
+app.post("/contact-form", async (req, res) => {
+  const comment = await prisma.comments.create({ data: req.body });
+  res.json({ message: "Дані збережено!", data: comment });
 });
 
-app.get("/comments", async function (req, res) {
-  const allComments = await db.any("SELECT * FROM comments");
+app.get("/comments", async (req, res) => {
+  const allComments = await prisma.comments.findMany();
   res.json(allComments);
 });
 
-// blog
+// ====================== USERS ======================
+app.post("/signup", async (req, res) => {
+  const { firstname, lastname, email, password } = req.body;
 
-app.get("/articles", async function (req, res) {
-  const allArticles = await db.any(
-    // SQL код (Бд)
-    `
-  SELECT 
-    articles.*,
-    json_build_object(
-      'id', users.id,
-      'firstname', users.firstname,
-      'lastname', users.lastname,
-      'email', users.email 
-    ) AS user
-  FROM articles
-  JOIN users ON articles.user_id = users.id
-  ORDER BY articles.created_at DESC
-`
-  );
-  res.json(allArticles);
-});
+  const existingUser = await prisma.user.findUnique({ where: { email } });
+  if (existingUser)
+    return res
+      .status(409)
+      .json({ message: "Користувач з таким емейлом вже існує" });
 
-// бере article і його слаг для створення окремої сторінки /article/:slug
-app.get("/article/:slug", async function (req, res) {
-  try {
-    const { slug } = req.params;
-
-    const article = await db.oneOrNone(
-      // SQL код (Бд)
-      `
-      SELECT 
-        articles.*,
-        json_build_object(
-          'id', users.id,
-          'firstname', users.firstname,
-          'lastname', users.lastname,
-          'email', users.email
-        ) AS user
-      FROM articles
-      JOIN users ON articles.user_id = users.id
-      WHERE articles.slug = $1
-      `,
-      [slug]
-    );
-
-    // Якщо !article ( не існує )
-    if (!article) {
-      return res.status(404).json({ error: "Article not found" });
-    }
-
-    res.json(article);
-  } catch (err) {
-    console.error("Error fetching article by slug:", err);
-    res.status(500).json({ error: "Server error" });
-  }
-});
-
-app.post("/article/create", withAuth, async function (req, res) {
-  const email = req.email;
-  // Генерує слаг по тайтлу (Імені)
-  const slug = generateSlug(req.body.title);
-
-  // get user id from DB
-  const user = await db.one("SELECT id FROM users WHERE email = ${email}", {
-    email,
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const user = await prisma.user.create({
+    data: { firstname, lastname, email, password: hashedPassword },
   });
 
-  // створення форми самого Article
-  await db.any(
-    "INSERT INTO articles(title, image, description, content, slug, user_id, category_id) VALUES(${title}, ${image}, ${description}, ${content}, ${slug}, ${user.id}, ${category_id})",
-    { ...req.body, user, slug }
-  );
-
-  res.send({ message: "Дані збережено!", data: req.body });
+  res.status(201).json({ message: "Користувача створено", user });
 });
 
-// Sign up
-app.post("/signup", async function (req, res) {
-  const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash(req.body.password, salt);
-  // Bcrypt - бібліотека бля хешування паролю
-
-  // 1. ЗАПИТ ДО ТАБЛИЦІ
-  const existingUser = await db.any(
-    "SELECT * FROM users WHERE email = ${email}",
-    { email: req.body.email }
-    // Перевіряє всіх Users по Email
-  );
-  // Якщо User з таким Email існує, то: 409 помилка
-  if (existingUser.length) {
-    return res.status(409).send({
-      user: existingUser,
-      message: "Користувач з таким емейлом вже існує",
-    });
-  }
-
-  await db.any(
-    "INSERT INTO users (firstname, lastname, email, password) VALUES(${firstname}, ${lastname}, ${email}, ${hashedPassword})",
-    { ...req.body, hashedPassword }
-  );
-
-  return res
-    .status(201)
-    .send({ message: "Користувача створено", data: req.body });
-});
-
-// Sign In
-app.post("/signin", async function (req, res) {
+app.post("/signin", async (req, res) => {
   const { email, password } = req.body;
-  // Find user by email
-  const user = await db.one("SELECT * FROM users WHERE email = ${email}", {
-    email,
-  });
-
+  const user = await prisma.user.findUnique({ where: { email } });
   if (!user) return res.status(400).json({ message: "User not found" });
 
-  // Compare password with the stored hash
-  // Якщо пароль невірний помилка 400
   const isPasswordValid = await bcrypt.compare(password, user.password);
   if (!isPasswordValid)
     return res.status(400).json({ message: "Invalid credentials" });
 
-  // Generate JWT token
   const token = jwt.sign({ email }, SECRET_KEY, { expiresIn: "4h" });
-
   res.json({ token, user });
 });
 
-app.get("/verify-token", async function (req, res) {
-  const token = req.header("Authorization");
-  // Якщо токена вже не існує то помилка 401
+app.get("/verify-token", async (req, res) => {
+  const token = req.header("Authorization")?.split(" ")[1];
   if (!token) return res.status(401).json({ message: "Access Denied" });
 
   try {
-    // перевіряє токен користувача (JWT) і дістає інформацію про користувача з бази даних.
-    const verified = jwt.verify(token.split(" ")[1], SECRET_KEY);
-    const { id, firstname, lastname, email, avatar } = await db.one(
-      "SELECT * FROM users WHERE email = ${email}",
-      {
-        email: verified.email,
-      }
-    );
-
-    return res.status(200).send({
-      user: {
-        id,
-        firstname,
-        lastname,
-        email,
-        avatar,
-      },
+    const verified = jwt.verify(token, SECRET_KEY);
+    const user = await prisma.user.findUnique({
+      where: { email: verified.email },
     });
-  } catch (err) {
+    res.json({ user });
+  } catch {
     res.status(400).json({ message: "Invalid Token" });
   }
 });
 
-// Profile
-
-// Створюємо ендпоінт Profile, withAuth перевіряє токен користувача.
+// ====================== PROFILE ======================
 app.post("/profile", withAuth, upload.single("avatar"), async (req, res) => {
   try {
     const email = req.email;
+    const user = await prisma.user.findUnique({ where: { email } });
 
-    // Знаходимо id користувача в базі по email.
-    const user = await db.one("SELECT id FROM users WHERE email = ${email}", {
-      email,
-    });
     const ext = path.extname(req.file.originalname);
     const newFileName = `${user.id}_avatar${ext}`;
-    // Зберігаємо в папку Uploads
     const newPath = path.join("uploads", newFileName);
-
-    // rename the uploaded file
     fs.renameSync(req.file.path, newPath);
-    // Формуємо URL для доступу до аватара з фронтенду.
     const fileUrl = `/uploads/${newFileName}`;
 
-    // Оновлюємо поле avatar в базі, повертаємо оновлені дані користувача.
-    const updatedUser = await db.one(
-      `UPDATE users 
-         SET avatar = \${avatar}
-         WHERE id = \${id}
-         RETURNING id, email, avatar`,
-      { id: user.id, avatar: fileUrl }
-    );
-
-    res.json({
-      message: "Profile updated",
-      user: updatedUser,
+    const updatedUser = await prisma.user.update({
+      where: { id: user.id },
+      data: { avatar: fileUrl },
     });
+
+    res.json({ message: "Profile updated", user: updatedUser });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to update profile" });
   }
 });
 
-// Category
-
-// Створює категорію, генерує слаг по імені
-app.post("/category/create", withAuth, async function (req, res) {
+// ====================== CATEGORIES ======================
+app.post("/category/create", withAuth, async (req, res) => {
   const slug = generateSlug(req.body.name);
-
-  // Додає нову категорію в базу з полями name, img і slug.
-  await db.any(
-    "INSERT INTO categories(name, img, slug) VALUES(${name}, ${img}, ${slug})",
-    { ...req.body, slug }
-  );
-
-  res.send({ message: "Дані збережено!", data: req.body });
+  const category = await prisma.category.create({
+    data: { ...req.body, slug },
+  });
+  res.json({ message: "Дані збережено!", category });
 });
 
-app.get("/categories", async function (req, res) {
-  const categories = await db.any(` 
- SELECT * FROM categories;
-`);
+app.get("/categories", async (req, res) => {
+  const categories = await prisma.category.findMany();
   res.json({ categories });
 });
 
-app.get("/category/:slug", async function (req, res) {
+app.get("/category/:slug", async (req, res) => {
+  const { slug } = req.params;
+  const category = await prisma.category.findUnique({
+    where: { slug },
+    include: {
+      articles: {
+        include: {
+          user: {
+            select: { id: true, firstname: true, lastname: true, email: true },
+          },
+        },
+      },
+    },
+  });
+
+  if (!category) return res.status(404).json({ message: "Category not found" });
+  res.json(category);
+});
+
+// ====================== ARTICLES ======================
+app.get("/articles", async (req, res) => {
+  const articles = await prisma.article.findMany({
+    orderBy: { createdAt: "desc" },
+    include: {
+      user: {
+        select: { id: true, firstname: true, lastname: true, email: true },
+      },
+    },
+  });
+  res.json(articles);
+});
+
+app.get("/article/:slug", async (req, res) => {
+  const { slug } = req.params;
+  const article = await prisma.article.findUnique({
+    where: { slug },
+    include: {
+      user: {
+        select: { id: true, firstname: true, lastname: true, email: true },
+      },
+    },
+  });
+
+  if (!article) return res.status(404).json({ message: "Article not found" });
+  res.json(article);
+});
+
+app.post("/article/create", withAuth, async (req, res) => {
   try {
-    // Беремо slug з URL.
-    const { slug } = req.params;
-    // Виконує SQL-запит, який:
-    // Вибирає категорію (c.*)
-    // LEFT JOIN з таблицею articles
-    // LEFT JOIN з таблицею users (автор статті)
-    // Збирає всі статті категорії в поле articles у вигляді JSON
-    // Якщо статей нема — повертає пустий масив '[]'
-    const category = await db.oneOrNone(
-      `
-      SELECT 
-        c.*,
-        COALESCE(
-          json_agg(
-            json_build_object(
-              'id', a.id,
-              'title', a.title,
-              'slug', a.slug,
-              'description', a.description,
-              'image', a.image,
-              'created_at', a.created_at,
-              'user', json_build_object(
-                'id', u.id,
-                'firstname', u.firstname,
-                'lastname', u.lastname,
-                'email', u.email
-              )
-            )
-          ) FILTER (WHERE a.id IS NOT NULL),
-          '[]'
-        ) AS articles
-      FROM categories c
-      LEFT JOIN articles a ON a.category_id = c.id
-      LEFT JOIN users u ON u.id = a.user_id
-      WHERE c.slug = $1
-      GROUP BY c.id
-      `,
-      [slug]
-    );
+    const email = req.email;
+    const { title, image, description, content, category_id } = req.body;
+    const slug = generateSlug(title);
 
-    // Якщо категорії з таким slug нема — повертає 404
-    if (!category) {
-      return res.status(404).json({ error: "Category not found" });
-    }
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) return res.status(404).json({ message: "User not found" });
 
-    res.json(category);
+    const article = await prisma.article.create({
+      data: {
+        title,
+        image,
+        description,
+        content,
+        slug,
+        category: { connect: { id: Number(category_id) } },
+        user: { connect: { id: user.id } },
+      },
+    });
+
+    res.json({ message: "Статтю створено успішно", article });
   } catch (err) {
-    console.error("Error fetching category by slug:", err);
+    console.error(err);
     res.status(500).json({ error: "Server error" });
   }
 });
 
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
-});
+app.listen(port, () => console.log(`Server listening on port ${port}`));
