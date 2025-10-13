@@ -7,16 +7,13 @@ import {
   Button,
   Stack,
 } from "@mui/material";
-
 import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
-
 import api from "../../api";
 import MyEditor from "../UI/Editor";
 import { slateToHtml } from "@slate-serializers/html";
-import StyledLink from "../UI/StyledLink";
 
 export default function AddArticlePage({ categories }) {
   const [formData, setFormData] = useState({
@@ -56,7 +53,7 @@ export default function AddArticlePage({ categories }) {
       const response = await api.post("/article/create", preparedFormData);
 
       if (response.status === 200 || response.status === 201) {
-        alert("Форма відправлена ✅");
+        alert("Form submitted ✅");
         setFormData({
           title: "",
           description: "",
@@ -72,7 +69,7 @@ export default function AddArticlePage({ categories }) {
       }
     } catch (err) {
       console.error(err);
-      alert("Помилка під час відправки форми ❌");
+      alert("Error submitting the form ❌");
     }
   };
 
@@ -131,12 +128,6 @@ export default function AddArticlePage({ categories }) {
 
             <MyEditor value={formData.content} onChange={handleEditorChange} />
           </Stack>
-
-          <Box mt={2}>
-            <StyledLink to="/blog-submission-rules">
-              Please read the blog submission rules.
-            </StyledLink>
-          </Box>
 
           <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }}>
             Submit

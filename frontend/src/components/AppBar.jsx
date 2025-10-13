@@ -38,7 +38,7 @@ function ResponsiveAppBar({ categories }) {
     { title: "Contact", link: "/contact-form" },
     { title: "Add Article", link: "/add-article" },
     { title: "Add Category", link: "/add-category" },
-    { title: "FAQ", link: "/faqs" },
+    { title: "FAQ", link: "/faq" },
   ];
 
   const settings = [
@@ -48,7 +48,6 @@ function ResponsiveAppBar({ categories }) {
 
   return (
     <AppBar position="sticky">
-      {" "}
       {/* фіксована верхня панель */}
       <Container>
         <Toolbar disableGutters>

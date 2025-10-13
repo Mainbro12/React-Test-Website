@@ -15,7 +15,7 @@ import CategoryPage from "./components/pages/CategoryPage.jsx";
 import api from "./api.js";
 import AddCategoryPage from "./components/pages/AddCategoryPage.jsx";
 import AddArticlePage from "./components/pages/AddArticlePage.jsx";
-import FaqsPage from "./components/pages/FaqsPage.jsx";
+import FaqPage from "./components/pages/FaqPage.jsx";
 import FormCreateBlogPage from "./components/pages/FormCreateBlogPage.jsx";
 import BlogSubmissionRulesPage from "./components/pages/BlogSubmissionRulesPage.jsx";
 import AboutPage from "./components/pages/AboutUs.jsx";
@@ -58,16 +58,18 @@ function App() {
           element: <CommentsPage />,
         },
         {
-          path: "/faqs",
-          element: <FaqsPage />,
-        },
-        {
-          path: "/form-create-blog",
-          element: <FormCreateBlogPage />,
-        },
-        {
-          path: "/blog-submission-rules",
-          element: <BlogSubmissionRulesPage />,
+          path: "/faq",
+          element: <FaqPage />,
+          children: [
+            {
+              path: "form-create-blog",
+              element: <FormCreateBlogPage />,
+            },
+            {
+              path: "blog-submission-rules",
+              element: <BlogSubmissionRulesPage />,
+            },
+          ],
         },
 
         {

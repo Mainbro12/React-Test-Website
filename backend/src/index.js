@@ -26,6 +26,14 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 const uploadDir = path.join(process.cwd(), "uploads");
+const avatarUploadDir = path.join(uploadDir, "avatars");
+if (!fs.existsSync(avatarUploadDir))
+  fs.mkdirSync(avatarUploadDir, { recursive: true });
+
+const backgroundUploadDir = path.join(uploadDir, "backgrounds");
+if (!fs.existsSync(backgroundUploadDir))
+  fs.mkdirSync(backgroundUploadDir, { recursive: true });
+
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
 app.use(bodyParser.json());
@@ -90,29 +98,7 @@ app.get("/verify-token", async (req, res) => {
   }
 });
 
-// ====================== PROFILE ======================
-app.post("/profile", withAuth, upload.single("avatar"), async (req, res) => {
-  try {
-    const email = req.email;
-    const user = await prisma.user.findUnique({ where: { email } });
-
-    const ext = path.extname(req.file.originalname);
-    const newFileName = `${user.id}_avatar${ext}`;
-    const newPath = path.join("uploads", newFileName);
-    fs.renameSync(req.file.path, newPath);
-    const fileUrl = `/uploads/${newFileName}`;
-
-    const updatedUser = await prisma.user.update({
-      where: { id: user.id },
-      data: { avatar: fileUrl },
-    });
-
-    res.json({ message: "Profile updated", user: updatedUser });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to update profile" });
-  }
-});
+// ====================== PROFILE AVATAR ======================
 
 // ====================== CATEGORIES ======================
 app.post("/category/create", withAuth, async (req, res) => {
@@ -202,5 +188,52 @@ app.post("/article/create", withAuth, async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
+
+// ====================== PROFILE BACKGROUND ======================
+app.post(
+  "/profile/update",
+  withAuth,
+  upload.fields([
+    { name: "avatar", maxCount: 1 },
+    { name: "background", maxCount: 1 },
+  ]),
+  async (req, res) => {
+    try {
+      const email = req.email;
+      const user = await prisma.user.findUnique({ where: { email } });
+      if (!user) return res.status(404).json({ message: "User not found" });
+
+      const updateData = {};
+
+      if (req.files.avatar) {
+        const avatarFile = req.files.avatar[0];
+        const ext = path.extname(avatarFile.originalname);
+        const fileName = `${user.id}_avatar${ext}`;
+        const filePath = path.join(avatarUploadDir, fileName);
+        fs.renameSync(avatarFile.path, filePath);
+        updateData.avatar = `/uploads/avatars/${fileName}`;
+      }
+
+      if (req.files.background) {
+        const bgFile = req.files.background[0];
+        const ext = path.extname(bgFile.originalname);
+        const fileName = `${user.id}_background${ext}`;
+        const filePath = path.join(backgroundUploadDir, fileName);
+        fs.renameSync(bgFile.path, filePath);
+        updateData.background = `/uploads/backgrounds/${fileName}`;
+      }
+
+      const updatedUser = await prisma.user.update({
+        where: { id: user.id },
+        data: updateData,
+      });
+
+      res.json({ message: "Profile updated", user: updatedUser });
+    } catch (err) {
+      console.error("Profile update error:", err);
+      res.status(500).json({ error: "Failed to update profile" });
+    }
+  }
+);
 
 app.listen(port, () => console.log(`Server listening on port ${port}`));

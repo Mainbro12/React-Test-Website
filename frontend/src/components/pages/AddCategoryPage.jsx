@@ -32,7 +32,7 @@ export default function AddCategoryPage() {
 
       const response = await api.post("/category/create", preparedFormData);
       if (response.status === 200) {
-        alert("Категорію створено ✅");
+        alert("Category created ✅");
         setFormData({
           name: "",
           img: "",
@@ -40,7 +40,7 @@ export default function AddCategoryPage() {
       }
     } catch (err) {
       console.log(err);
-      alert("Помилка під час створення категорії ❌");
+      alert("Error while creating category ❌");
     }
   };
 

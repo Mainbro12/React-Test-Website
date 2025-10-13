@@ -23,7 +23,7 @@ export default function ContactForm() {
 
     await api.post("/contact-form", formData);
 
-    alert("Форма відправлена ✅");
+    alert("Form submitted ✅");
     setFormData({
       name: "",
       lastname: "",
