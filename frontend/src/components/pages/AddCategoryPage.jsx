@@ -42,6 +42,9 @@ export default function AddCategoryPage() {
       console.log(err);
       alert("Error while creating category ❌");
     }
+    setFormData({ name: "", img: "" });
+
+    window.location.reload();
   };
 
   return (

@@ -6,6 +6,7 @@ import {
   Typography,
   Grid,
   CardMedia,
+  Button,
 } from "@mui/material";
 import dayjs from "dayjs";
 import api from "../../api";
@@ -51,6 +52,70 @@ function BlogPage() {
 
   return (
     <Box sx={{ flexGrow: 1 }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+          mb: 3,
+          width: "100%",
+          flexWrap: "wrap",
+        }}
+      >
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+          <Typography variant="h4" sx={{ fontWeight: 600 }}>
+            Blog with the Best!
+          </Typography>
+
+          <Button
+            component={StyledLink}
+            to="/add-article"
+            variant="outlined"
+            sx={{
+              backgroundColor: "white",
+              color: "#333",
+              borderColor: "black",
+              fontWeight: 500,
+              textTransform: "none",
+              padding: "10px 22px",
+              borderRadius: "15px",
+              boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
+              "&:hover": {
+                backgroundColor: "#808080",
+                boxShadow: "0 4px 10px rgba(0,0,0,0.18)",
+                borderColor: "black",
+                transform: "translateY(-1px)",
+                mb: "2px",
+              },
+            }}
+          >
+            Create a Blog!
+          </Button>
+        </Box>
+
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 1 }}>
+          <Typography variant="body1">To Share:</Typography>
+          <FacebookShareButton
+            url={window.location.href}
+            quote="Check out this blog!"
+          >
+            <FacebookIcon size={30} round />
+          </FacebookShareButton>
+          <TwitterShareButton
+            url={window.location.href}
+            title="Check out this blog!"
+          >
+            <TwitterIcon size={30} round />
+          </TwitterShareButton>
+          <TelegramShareButton
+            url={window.location.href}
+            title="Check out this blog!"
+          >
+            <TelegramIcon size={30} round />
+          </TelegramShareButton>
+        </Box>
+      </Box>
+
       <TextField
         label="Search articles..."
         variant="outlined"
@@ -65,31 +130,6 @@ function BlogPage() {
           ),
         }}
       />
-      <Typography variant="h4" gutterBottom textAlign="center">
-        Blog Articles:
-      </Typography>
-      <Box sx={{ display: "flex", gap: 2, justifyContent: "center", mb: 3 }}>
-        <FacebookShareButton
-          url={window.location.href}
-          quote="Check out this blog!"
-        >
-          <FacebookIcon size={40} round />
-        </FacebookShareButton>
-
-        <TwitterShareButton
-          url={window.location.href}
-          title="Check out this blog!"
-        >
-          <TwitterIcon size={40} round />
-        </TwitterShareButton>
-
-        <TelegramShareButton
-          url={window.location.href}
-          title="Check out this blog!"
-        >
-          <TelegramIcon size={40} round />
-        </TelegramShareButton>
-      </Box>
 
       <Grid
         container
@@ -153,7 +193,9 @@ function BlogPage() {
                       {`👨🏻‍💻Author: ${article.user.firstname} ${article.user.lastname}`}
                       <br />
                       Posted on:
-                      {dayjs(article.created_at).format("DD/MM/YYYY HH:mm")}
+                      <Typography>
+                        {dayjs(article.updatedAt).format("DD/MM/YYYY HH:mm")}
+                      </Typography>
                     </Typography>
                   </Typography>
                 </CardContent>

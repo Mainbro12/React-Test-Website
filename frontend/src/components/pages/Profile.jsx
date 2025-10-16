@@ -3,9 +3,11 @@ import { useContext, useState, useEffect, useRef } from "react";
 import { AuthContext } from "../../contexts/AuthContext";
 import api from "../../api";
 import AddIcon from "@mui/icons-material/Add";
+import { useParams } from "react-router";
 
 function ProfilePage() {
-  const { user, setUser } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
+  const [profileUser, setProfileUser] = useState(null);
   const [avatarFile, setAvatarFile] = useState(null);
   const [backgroundFile, setBackgroundFile] = useState(null);
   const [previewAvatar, setPreviewAvatar] = useState("");
@@ -13,6 +15,15 @@ function ProfilePage() {
 
   const backgroundInputRef = useRef(null);
   const avatarInputRef = useRef(null);
+  const { id } = useParams();
+
+  useEffect(() => {
+    if (id) {
+      api.get(`/user/${id}`).then((res) => setProfileUser(res.data));
+    } else {
+      setProfileUser(user);
+    }
+  }, [id, user]);
 
   useEffect(() => {
     setPreviewAvatar(
@@ -107,7 +118,7 @@ function ProfilePage() {
 
       <Box sx={{ position: "relative", mb: 3 }}>
         <Avatar
-          alt={`${user.firstname} ${user.lastname}`}
+          alt={`${profileUser?.firstname} ${profileUser?.lastname}`}
           src={previewAvatar}
           sx={{
             width: 200,
@@ -116,7 +127,8 @@ function ProfilePage() {
             boxShadow: "0 0 10px rgba(0,0,0,0.5)",
           }}
         >
-          {user.firstname[0].toUpperCase() + user.lastname[0].toUpperCase()}
+          {profileUser?.firstname[0].toUpperCase() +
+            profileUser?.lastname[0].toUpperCase()}
         </Avatar>
 
         {/* "+" button on avatar */}

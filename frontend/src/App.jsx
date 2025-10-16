@@ -1,5 +1,5 @@
 import "./App.css";
-import { createBrowserRouter, Navigate } from "react-router";
+import { createBrowserRouter, Navigate, Route, Router } from "react-router";
 import { RouterProvider } from "react-router/dom";
 import AppLayout from "./components/layouts/AppLayout.jsx";
 import ContactPage from "./components/pages/ContactForm.jsx";
@@ -19,6 +19,7 @@ import FaqPage from "./components/pages/FaqPage.jsx";
 import FormCreateBlogPage from "./components/pages/FormCreateBlogPage.jsx";
 import BlogSubmissionRulesPage from "./components/pages/BlogSubmissionRulesPage.jsx";
 import AboutPage from "./components/pages/AboutUs.jsx";
+import UserProfilePage from "./components/pages/UserProfilePage.jsx";
 
 function App() {
   const [categories, setCategories] = useState(null);
@@ -29,6 +30,7 @@ function App() {
       const response = await api.get("/categories");
       setCategories(response.data.categories);
     };
+    <Router path="/user/:id" element={<ProfilePage />} />;
 
     fetchCategories();
   }, []);
@@ -53,6 +55,7 @@ function App() {
           path: "/contact-form",
           element: <ContactPage />,
         },
+        { path: "/user/:id", element: <UserProfilePage /> },
         {
           path: "/comments",
           element: <CommentsPage />,
@@ -84,6 +87,7 @@ function App() {
           path: "/profile",
           element: user ? <ProfilePage /> : <Navigate to="/signin" replace />,
         },
+
         {
           path: "/about-us",
           element: <AboutPage />,
@@ -95,7 +99,7 @@ function App() {
             <Navigate to="/signin" replace />
           ) : (
             <AddArticlePage categories={categories} />
-          ), // blog form
+          ),
         },
         {
           path: "/add-category",

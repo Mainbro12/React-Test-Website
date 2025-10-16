@@ -163,7 +163,7 @@ function CategoryPage() {
                         {`👨🏻‍💻Author: ${article.user.firstname} ${article.user.lastname}`}
                         <br />
                         Posted on:
-                        {dayjs(article.created_at).format("DD/MM/YYYY HH:mm")}
+                        {dayjs(article.createdAt).format("DD/MM/YYYY HH:mm")}
                       </Typography>
                     </Typography>
                   </CardContent>

@@ -98,8 +98,6 @@ app.get("/verify-token", async (req, res) => {
   }
 });
 
-// ====================== PROFILE AVATAR ======================
-
 // ====================== CATEGORIES ======================
 app.post("/category/create", withAuth, async (req, res) => {
   const slug = generateSlug(req.body.name);
@@ -139,7 +137,13 @@ app.get("/articles", async (req, res) => {
     orderBy: { createdAt: "desc" },
     include: {
       user: {
-        select: { id: true, firstname: true, lastname: true, email: true },
+        select: {
+          id: true,
+          firstname: true,
+          lastname: true,
+          email: true,
+          avatar: true,
+        },
       },
     },
   });
@@ -152,7 +156,13 @@ app.get("/article/:slug", async (req, res) => {
     where: { slug },
     include: {
       user: {
-        select: { id: true, firstname: true, lastname: true, email: true },
+        select: {
+          id: true,
+          firstname: true,
+          lastname: true,
+          email: true,
+          avatar: true,
+        },
       },
     },
   });
@@ -166,7 +176,6 @@ app.post("/article/create", withAuth, async (req, res) => {
     const email = req.email;
     const { title, image, description, content, category_id } = req.body;
     const slug = generateSlug(title);
-
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) return res.status(404).json({ message: "User not found" });
 
@@ -176,13 +185,14 @@ app.post("/article/create", withAuth, async (req, res) => {
         image,
         description,
         content,
+        createdAt,
         slug,
         category: { connect: { id: Number(category_id) } },
         user: { connect: { id: user.id } },
       },
     });
 
-    res.json({ message: "Статтю створено успішно", article });
+    res.json({ article });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Server error" });
@@ -235,5 +245,31 @@ app.post(
     }
   }
 );
+
+app.get("/user/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await prisma.user.findUnique({
+      where: { id: Number(id) },
+      select: {
+        id: true,
+        firstname: true,
+        lastname: true,
+        email: true,
+        avatar: true,
+        background: true,
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.json(user);
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+});
 
 app.listen(port, () => console.log(`Server listening on port ${port}`));
