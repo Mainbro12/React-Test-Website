@@ -44,7 +44,7 @@ app.use("/uploads", express.static(uploadDir));
 // ====================== CONTACT FORM ======================
 app.post("/contact-form", async (req, res) => {
   const comment = await prisma.comments.create({ data: req.body });
-  res.json({ message: "Дані збережено!", data: comment });
+  res.json({ message: "Data saved!", data: comment });
 });
 
 app.get("/comments", async (req, res) => {
@@ -60,14 +60,14 @@ app.post("/signup", async (req, res) => {
   if (existingUser)
     return res
       .status(409)
-      .json({ message: "Користувач з таким емейлом вже існує" });
+      .json({ message: "User with this email already exists" });
 
   const hashedPassword = await bcrypt.hash(password, 10);
   const user = await prisma.user.create({
     data: { firstname, lastname, email, password: hashedPassword },
   });
 
-  res.status(201).json({ message: "Користувача створено", user });
+  res.status(201).json({ message: "User created", user });
 });
 
 app.post("/signin", async (req, res) => {
@@ -104,7 +104,7 @@ app.post("/category/create", withAuth, async (req, res) => {
   const category = await prisma.category.create({
     data: { ...req.body, slug },
   });
-  res.json({ message: "Дані збережено!", category });
+  res.json({ message: "Data saved!", category });
 });
 
 app.get("/categories", async (req, res) => {
@@ -223,7 +223,9 @@ app.post(
         fs.renameSync(avatarFile.path, filePath);
         updateData.avatar = `/uploads/avatars/${fileName}`;
       }
-
+      if (req.body.bio) {
+        updateData.bio = req.body.bio;
+      }
       if (req.files.background) {
         const bgFile = req.files.background[0];
         const ext = path.extname(bgFile.originalname);
@@ -258,6 +260,7 @@ app.get("/user/:id", async (req, res) => {
         email: true,
         avatar: true,
         background: true,
+        bio: true,
       },
     });
 

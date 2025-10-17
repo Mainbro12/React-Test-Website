@@ -49,9 +49,10 @@ function UserProfilePage() {
         src={avatarSrc}
         sx={{ width: 200, height: 200, mb: 3 }}
       />
-      <Typography variant="h4">
+      <Typography variant="h5">
         {user.firstname} {user.lastname}
       </Typography>
+      <br />
     </Box>
   );
 }

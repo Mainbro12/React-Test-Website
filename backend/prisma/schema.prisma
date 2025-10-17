@@ -21,6 +21,7 @@ model User {
   password   String
   avatar     String?
   background String?
+  bio        String?
   articles   Article[]
 }
 

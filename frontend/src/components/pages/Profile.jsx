@@ -1,4 +1,11 @@
-import { Avatar, Box, Button, Typography, IconButton } from "@mui/material";
+import {
+  Avatar,
+  Box,
+  Button,
+  Typography,
+  IconButton,
+  TextField,
+} from "@mui/material";
 import { useContext, useState, useEffect, useRef } from "react";
 import { AuthContext } from "../../contexts/AuthContext";
 import api from "../../api";
@@ -6,12 +13,14 @@ import AddIcon from "@mui/icons-material/Add";
 import { useParams } from "react-router";
 
 function ProfilePage() {
-  const { user } = useContext(AuthContext);
+  const { user, setUser } = useContext(AuthContext);
   const [profileUser, setProfileUser] = useState(null);
   const [avatarFile, setAvatarFile] = useState(null);
   const [backgroundFile, setBackgroundFile] = useState(null);
   const [previewAvatar, setPreviewAvatar] = useState("");
   const [previewBackground, setPreviewBackground] = useState("");
+  const [bio, setBio] = useState("");
+  const [editingBio, setEditingBio] = useState(false); // 👈 новий стан
 
   const backgroundInputRef = useRef(null);
   const avatarInputRef = useRef(null);
@@ -34,6 +43,7 @@ function ProfilePage() {
     setPreviewBackground(
       user.background ? import.meta.env.VITE_SERVER_URL + user.background : ""
     );
+    setBio(user.bio || ""); // 👈 оновлюємо при завантаженні
   }, [user]);
 
   const handleAvatarChange = (e) => {
@@ -53,6 +63,7 @@ function ProfilePage() {
     const formData = new FormData();
     if (avatarFile) formData.append("avatar", avatarFile);
     if (backgroundFile) formData.append("background", backgroundFile);
+    if (bio) formData.append("bio", bio); // 👈 додаємо біо
 
     try {
       const res = await api.post("/profile/update", formData, {
@@ -61,6 +72,7 @@ function ProfilePage() {
       setUser(res.data.user);
       setAvatarFile(null);
       setBackgroundFile(null);
+      setEditingBio(false);
       alert("Profile updated successfully!");
     } catch (err) {
       console.error(err);
@@ -80,7 +92,7 @@ function ProfilePage() {
         justifyContent: "center",
         background: previewBackground
           ? `url(${previewBackground}) center/cover no-repeat`
-          : "#b0b0b0", // default grey color
+          : "#b0b0b0",
         padding: 4,
         borderRadius: 4,
       }}
@@ -101,6 +113,7 @@ function ProfilePage() {
       >
         Change background
       </Button>
+
       <input
         type="file"
         accept="image/*"
@@ -127,11 +140,10 @@ function ProfilePage() {
             boxShadow: "0 0 10px rgba(0,0,0,0.5)",
           }}
         >
-          {profileUser?.firstname[0].toUpperCase() +
-            profileUser?.lastname[0].toUpperCase()}
+          {profileUser?.firstname?.[0]?.toUpperCase() +
+            profileUser?.lastname?.[0]?.toUpperCase()}
         </Avatar>
 
-        {/* "+" button on avatar */}
         <IconButton
           sx={{
             position: "absolute",
@@ -154,14 +166,65 @@ function ProfilePage() {
         />
       </Box>
 
-      <form
-        onSubmit={handleUpload}
-        style={{ display: "flex", flexDirection: "column", gap: 10 }}
+      {/* BIO SECTION */}
+      <Box
+        sx={{
+          mt: 2,
+          width: "100%",
+          maxWidth: 600,
+          bgcolor: "#4a4a4a",
+          borderRadius: 2,
+          p: 2,
+
+          boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+        }}
       >
-        <Button type="submit" variant="contained" color="primary">
-          Update Profile
-        </Button>
-      </form>
+        <Typography variant="h6" sx={{ mb: 1 }}>
+          Bio:
+        </Typography>
+
+        {!editingBio ? (
+          <>
+            <Typography
+              variant="body1"
+              sx={{
+                whiteSpace: "pre-line",
+                color: "#f0f0f0",
+                fontStyle: user.bio ? "normal" : "italic",
+              }}
+            >
+              {user.bio || "No bio yet"}
+            </Typography>
+            <Button
+              variant="outlined"
+              size="small"
+              sx={{ mt: 1 }}
+              onClick={() => setEditingBio(true)}
+            >
+              Edit Bio
+            </Button>
+          </>
+        ) : (
+          <>
+            <TextField
+              label="About me"
+              multiline
+              rows={4}
+              fullWidth
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+            />
+            <Button
+              variant="contained"
+              color="primary"
+              sx={{ mt: 1 }}
+              onClick={handleUpload}
+            >
+              Save Bio
+            </Button>
+          </>
+        )}
+      </Box>
     </Box>
   );
 }
