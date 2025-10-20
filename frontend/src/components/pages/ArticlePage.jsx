@@ -1,4 +1,4 @@
-import { Avatar, Box, Container, Typography } from "@mui/material";
+import { Avatar, Box, Button, Container, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import api from "../../api";
@@ -38,6 +38,20 @@ function ArticlePage() {
 
   return (
     <Container sx={{ py: 4 }}>
+      <Button
+        sx={{
+          borderRadius: "12px",
+          display: "flex",
+          justifyContent: "flex-start",
+          mt: -3,
+        }}
+        variant="contained"
+        onClick={() => navigate(-1)}
+      >
+        ❮ Back
+      </Button>
+      <br />
+      <br />
       {author && (
         <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
           <Avatar

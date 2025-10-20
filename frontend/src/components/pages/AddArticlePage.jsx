@@ -14,6 +14,7 @@ import Select from "@mui/material/Select";
 import api from "../../api";
 import MyEditor from "../UI/Editor";
 import { slateToHtml } from "@slate-serializers/html";
+import { useNavigate } from "react-router";
 
 export default function AddArticlePage({ categories }) {
   const [formData, setFormData] = useState({
@@ -72,9 +73,22 @@ export default function AddArticlePage({ categories }) {
       alert("Error submitting the form ❌");
     }
   };
+  const navigate = useNavigate();
 
   return (
     <Box display="flex" justifyContent="center" alignItems="center" mt={5}>
+      <Button
+        sx={{
+          borderRadius: "12px",
+          display: "flex",
+          justifyContent: "flex-start",
+          mt: -75.5,
+        }}
+        variant="contained"
+        onClick={() => navigate(-1)}
+      >
+        ❮ Back
+      </Button>
       <Paper
         elevation={3}
         sx={{ p: 4, borderRadius: 3, width: "100%", maxWidth: 600 }}

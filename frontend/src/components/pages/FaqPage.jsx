@@ -1,14 +1,22 @@
-import { Box, Typography } from "@mui/material";
-import { Outlet, useLocation } from "react-router-dom";
+import { Box, Button, Typography } from "@mui/material";
+import { Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import StyledLink from "../UI/StyledLink";
 
 function FaqPage() {
   const location = useLocation();
   const isSubPage = location.pathname !== "/faq";
+  const navigate = useNavigate();
 
   return (
     <Box p={3}>
-      {/* Якщо це НЕ вкладена сторінка */}
+      <Button
+        sx={{ display: "flex", justifyContent: "flex-start" }}
+        variant="contained"
+        onClick={() => navigate(-1)}
+      >
+        ❮ Back
+      </Button>
+
       {!isSubPage && (
         <>
           <Typography variant="h4" gutterBottom>

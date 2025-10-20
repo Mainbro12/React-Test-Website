@@ -134,7 +134,7 @@ app.get("/category/:slug", async (req, res) => {
 // ====================== ARTICLES ======================
 app.get("/articles", async (req, res) => {
   const articles = await prisma.article.findMany({
-    orderBy: { createdAt: "desc" },
+    orderBy: { updatedAt: "desc" },
     include: {
       user: {
         select: {
@@ -173,10 +173,10 @@ app.get("/article/:slug", async (req, res) => {
 
 app.post("/article/create", withAuth, async (req, res) => {
   try {
-    const email = req.email;
+    console.log("Request body:", req.body);
     const { title, image, description, content, category_id } = req.body;
     const slug = generateSlug(title);
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({ where: { email: req.email } });
     if (!user) return res.status(404).json({ message: "User not found" });
 
     const article = await prisma.article.create({
@@ -185,7 +185,6 @@ app.post("/article/create", withAuth, async (req, res) => {
         image,
         description,
         content,
-        createdAt,
         slug,
         category: { connect: { id: Number(category_id) } },
         user: { connect: { id: user.id } },
@@ -194,8 +193,8 @@ app.post("/article/create", withAuth, async (req, res) => {
 
     res.json({ article });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Server error" });
+    console.error("Create article error:", err);
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -253,14 +252,12 @@ app.get("/user/:id", async (req, res) => {
     const { id } = req.params;
     const user = await prisma.user.findUnique({
       where: { id: Number(id) },
-      select: {
-        id: true,
-        firstname: true,
-        lastname: true,
-        email: true,
-        avatar: true,
-        background: true,
-        bio: true,
+      include: {
+        articles: {
+          include: {
+            category: true, // щоб у статті було ім’я категорії
+          },
+        },
       },
     });
 

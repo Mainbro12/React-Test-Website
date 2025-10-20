@@ -55,7 +55,10 @@ function App() {
           path: "/contact-form",
           element: <ContactPage />,
         },
-        { path: "/user/:id", element: <UserProfilePage /> },
+        {
+          path: "/user/:id",
+          element: <UserProfilePage />,
+        },
         {
           path: "/comments",
           element: <CommentsPage />,

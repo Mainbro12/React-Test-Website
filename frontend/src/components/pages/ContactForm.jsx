@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { TextField, Button, Box, Typography, Paper } from "@mui/material";
 import api from "../../api";
+import { useNavigate } from "react-router";
 
 export default function ContactForm() {
   const [formData, setFormData] = useState({
@@ -32,9 +33,17 @@ export default function ContactForm() {
       message: "",
     });
   };
+  const navigate = useNavigate();
 
   return (
     <Box display="flex" justifyContent="center" alignItems="center" mt={5}>
+      <Button
+        sx={{ borderRadius: "12px", mt: -74.5 }}
+        variant="contained"
+        onClick={() => navigate(-1)}
+      >
+        ❮ Back
+      </Button>
       <Paper elevation={3} sx={{ p: 4, width: 400, borderRadius: 3 }}>
         <Typography variant="h5" mb={2} textAlign="center">
           Contact Form

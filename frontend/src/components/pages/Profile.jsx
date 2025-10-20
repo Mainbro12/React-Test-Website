@@ -20,7 +20,7 @@ function ProfilePage() {
   const [previewAvatar, setPreviewAvatar] = useState("");
   const [previewBackground, setPreviewBackground] = useState("");
   const [bio, setBio] = useState("");
-  const [editingBio, setEditingBio] = useState(false); // 👈 новий стан
+  const [editingBio, setEditingBio] = useState(false);
 
   const backgroundInputRef = useRef(null);
   const avatarInputRef = useRef(null);
@@ -43,7 +43,7 @@ function ProfilePage() {
     setPreviewBackground(
       user.background ? import.meta.env.VITE_SERVER_URL + user.background : ""
     );
-    setBio(user.bio || ""); // 👈 оновлюємо при завантаженні
+    setBio(user.bio || "");
   }, [user]);
 
   const handleAvatarChange = (e) => {
@@ -58,12 +58,13 @@ function ProfilePage() {
     if (file) setPreviewBackground(URL.createObjectURL(file));
   };
 
+  // 🔹 Зберігає аватар + background + bio
   const handleUpload = async (e) => {
     e.preventDefault();
     const formData = new FormData();
     if (avatarFile) formData.append("avatar", avatarFile);
     if (backgroundFile) formData.append("background", backgroundFile);
-    if (bio) formData.append("bio", bio); // 👈 додаємо біо
+    if (bio) formData.append("bio", bio);
 
     try {
       const res = await api.post("/profile/update", formData, {
@@ -74,6 +75,30 @@ function ProfilePage() {
       setBackgroundFile(null);
       setEditingBio(false);
       alert("Profile updated successfully!");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to update profile");
+    }
+  };
+
+  // 🔹 Зберігає лише аватар + background, але залишає поточне bio
+  const handleUploadImages = async (e) => {
+    e.preventDefault();
+    const formData = new FormData();
+    if (avatarFile) formData.append("avatar", avatarFile);
+    if (backgroundFile) formData.append("background", backgroundFile);
+    // 👇 додаємо поточне bio, щоб не стерлось
+    if (bio) formData.append("bio", bio);
+
+    try {
+      const res = await api.post("/profile/update", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      setUser(res.data.user);
+      setAvatarFile(null);
+      setBackgroundFile(null);
+      alert("Profile updated successfully!");
+      window.location.reload();
     } catch (err) {
       console.error(err);
       alert("Failed to update profile");
@@ -97,7 +122,6 @@ function ProfilePage() {
         borderRadius: 4,
       }}
     >
-      {/* Change background button */}
       <Button
         variant="contained"
         size="small"
@@ -166,6 +190,15 @@ function ProfilePage() {
         />
       </Box>
 
+      <form
+        onSubmit={handleUploadImages}
+        style={{ display: "flex", flexDirection: "column", gap: 10 }}
+      >
+        <Button type="submit" variant="contained" color="primary">
+          Update Profile
+        </Button>
+      </form>
+
       {/* BIO SECTION */}
       <Box
         sx={{
@@ -175,7 +208,6 @@ function ProfilePage() {
           bgcolor: "#4a4a4a",
           borderRadius: 2,
           p: 2,
-
           boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
         }}
       >
@@ -190,6 +222,8 @@ function ProfilePage() {
               sx={{
                 whiteSpace: "pre-line",
                 color: "#f0f0f0",
+                whiteSpace: "pre-wrap",
+                wordBreak: "break-word",
                 fontStyle: user.bio ? "normal" : "italic",
               }}
             >

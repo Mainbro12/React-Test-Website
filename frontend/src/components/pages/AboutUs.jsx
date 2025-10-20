@@ -8,11 +8,13 @@ import {
   Button,
   Stack,
 } from "@mui/material";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import useUser from "../../hooks/useUser";
 
 export default function AboutPage() {
   const { user } = useUser();
+  const navigate = useNavigate();
+
   return (
     <Container maxWidth="md" sx={{ py: 6 }}>
       <Box
@@ -23,6 +25,19 @@ export default function AboutPage() {
           bgcolor: "background.paper",
         }}
       >
+        <Button
+          sx={{
+            borderRadius: "12px",
+            display: "flex",
+            justifyContent: "flex-start",
+            mt: -7.5,
+          }}
+          variant="contained"
+          onClick={() => navigate(-1)}
+        >
+          ❮ Back
+        </Button>
+
         <Typography
           variant="h3"
           component="h1"

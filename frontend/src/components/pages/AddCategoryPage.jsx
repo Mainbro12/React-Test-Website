@@ -8,6 +8,7 @@ import {
   Stack,
 } from "@mui/material";
 import api from "../../api";
+import { useNavigate } from "react-router";
 
 export default function AddCategoryPage() {
   const [formData, setFormData] = useState({
@@ -46,9 +47,23 @@ export default function AddCategoryPage() {
 
     window.location.reload();
   };
+  const navigate = useNavigate();
 
   return (
-    <Box display="flex" justifyContent="center" alignItems="center" mt={5}>
+    <Box
+      display="flex"
+      justifyContent="center"
+      alignItems="center"
+      mt={5}
+      mr={15}
+    >
+      <Button
+        sx={{ borderRadius: "12px", mt: -32.8 }}
+        variant="contained"
+        onClick={() => navigate(-1)}
+      >
+        ❮ Back
+      </Button>
       <Paper elevation={3} sx={{ p: 4, borderRadius: 3 }}>
         <Typography variant="h5" mb={2} textAlign="center">
           Add Category:
