@@ -1,11 +1,9 @@
 import "./App.css";
-import { createBrowserRouter, data, Navigate } from "react-router";
+import { createBrowserRouter, Navigate, Route, Router } from "react-router";
 import { RouterProvider } from "react-router/dom";
 import AppLayout from "./components/layouts/AppLayout.jsx";
 import ContactPage from "./components/pages/ContactForm.jsx";
 import CommentsPage from "./components/pages/Comments.jsx";
-import BlogPage from "./components/pages/Blog.jsx";
-import BlogCreatePage from "./components/pages/BlogCreate.jsx";
 import SignInPage from "./components/pages/SignIn.jsx";
 import SignUpPage from "./components/pages/SignUp.jsx";
 import HomePage from "./components/pages/HomePage.jsx";
@@ -13,15 +11,34 @@ import { useEffect, useState } from "react";
 import ProfilePage from "./components/pages/Profile.jsx";
 import AuthProvider from "./providers/AuthProvider.jsx";
 import ArticlePage from "./components/pages/ArticlePage.jsx";
+import CategoryPage from "./components/pages/CategoryPage.jsx";
+import api from "./api.js";
+import AddCategoryPage from "./components/pages/AddCategoryPage.jsx";
+import AddArticlePage from "./components/pages/AddArticlePage.jsx";
+import FaqPage from "./components/pages/FaqPage.jsx";
+import FormCreateBlogPage from "./components/pages/FormCreateBlogPage.jsx";
+import BlogSubmissionRulesPage from "./components/pages/BlogSubmissionRulesPage.jsx";
+import AboutPage from "./components/pages/AboutUs.jsx";
+import UserProfilePage from "./components/pages/UserProfilePage.jsx";
 
 function App() {
+  const [categories, setCategories] = useState(null);
   const [user, setUser] = useState(null);
-  console.log(user);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const response = await api.get("/categories");
+      setCategories(response.data.categories);
+    };
+    <Router path="/user/:id" element={<ProfilePage />} />;
+
+    fetchCategories();
+  }, []);
   const router = createBrowserRouter([
     {
       element: (
         <AuthProvider user={user} setUser={setUser}>
-          <AppLayout />
+          <AppLayout categories={categories} />
         </AuthProvider>
       ),
 
@@ -39,8 +56,26 @@ function App() {
           element: <ContactPage />,
         },
         {
+          path: "/user/:id",
+          element: <UserProfilePage />,
+        },
+        {
           path: "/comments",
           element: <CommentsPage />,
+        },
+        {
+          path: "/faq",
+          element: <FaqPage />,
+          children: [
+            {
+              path: "form-create-blog",
+              element: <FormCreateBlogPage />,
+            },
+            {
+              path: "blog-submission-rules",
+              element: <BlogSubmissionRulesPage />,
+            },
+          ],
         },
 
         {
@@ -57,21 +92,38 @@ function App() {
         },
 
         {
-          path: "/blog",
-          children: [
-            {
-              index: true,
-              element: <BlogPage />, // blog form
-            },
-            {
-              path: "create",
-              element: !user ? (
-                <Navigate to="/signin" replace />
-              ) : (
-                <BlogCreatePage />
-              ), // blog form
-            },
-          ],
+          path: "/about-us",
+          element: <AboutPage />,
+        },
+
+        {
+          path: "/add-article",
+          element: !user ? (
+            <Navigate to="/signin" replace />
+          ) : (
+            <AddArticlePage categories={categories} />
+          ),
+        },
+        {
+          path: "/add-category",
+          element: !user ? (
+            <Navigate to="/signin" replace />
+          ) : (
+            <AddCategoryPage categories={categories} />
+          ),
+        },
+      ],
+    },
+    {
+      element: (
+        <AuthProvider user={user} setUser={setUser}>
+          <AppLayout isUseContainer={false} categories={categories} />
+        </AuthProvider>
+      ),
+      children: [
+        {
+          path: "/category/:slug",
+          element: <CategoryPage />,
         },
       ],
     },

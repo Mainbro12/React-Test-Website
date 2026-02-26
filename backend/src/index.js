@@ -2,11 +2,11 @@ import express from "express";
 import bodyParser from "body-parser";
 import cors from "cors";
 import jwt from "jsonwebtoken";
-import db from "./db.js";
 import bcrypt from "bcryptjs";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import { PrismaClient } from "@prisma/client";
 import withAuth from "./middleware.js";
 import APP_CONFIG from "./config.js";
 import generateSlug from "./utils/generate-slug.js";
@@ -14,227 +14,262 @@ import generateSlug from "./utils/generate-slug.js";
 const app = express();
 const port = APP_CONFIG.SERVER_PORT || 3000;
 const SECRET_KEY = APP_CONFIG.JWT_SECRET_KEY;
+const prisma = new PrismaClient();
 
+// Multer для завантаження файлів
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, "uploads/"),
   filename: (req, file, cb) => {
-    // Just give it a temporary unique name
     const ext = path.extname(file.originalname);
     cb(null, Date.now() + ext);
   },
 });
-
 const upload = multer({ storage });
 const uploadDir = path.join(process.cwd(), "uploads");
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
+const avatarUploadDir = path.join(uploadDir, "avatars");
+if (!fs.existsSync(avatarUploadDir))
+  fs.mkdirSync(avatarUploadDir, { recursive: true });
 
-app.use(bodyParser.urlencoded({ extended: false }));
+const backgroundUploadDir = path.join(uploadDir, "backgrounds");
+if (!fs.existsSync(backgroundUploadDir))
+  fs.mkdirSync(backgroundUploadDir, { recursive: true });
+
+if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
-app.use(bodyParser.json()); // для парсингу JSON
-app.use(bodyParser.urlencoded({ extended: true })); // для form-data
 app.use("/uploads", express.static(uploadDir));
 
-app.post("/contact-form", async function (req, res) {
-  await db.any(
-    "INSERT INTO comments(firstname, lastname, numberphone, email, comment) VALUES(${firstname}, ${lastname}, ${numberphone}, ${email}, ${comment})",
-    req.body
-  );
-
-  res.send({ message: "Дані збережено!", data: req.body });
+// ====================== CONTACT FORM ======================
+app.post("/contact-form", async (req, res) => {
+  const comment = await prisma.comments.create({ data: req.body });
+  res.json({ message: "Data saved!", data: comment });
 });
 
-app.get("/comments", async function (req, res) {
-  const allComments = await db.any("SELECT * FROM comments");
+app.get("/comments", async (req, res) => {
+  const allComments = await prisma.comments.findMany();
   res.json(allComments);
 });
 
-// blog
+// ====================== USERS ======================
+app.post("/signup", async (req, res) => {
+  const { firstname, lastname, email, password } = req.body;
 
-app.get("/articles", async function (req, res) {
-  const allArticles = await db.any(`
-  SELECT 
-    articles.*,
-    json_build_object(
-      'id', users.id,
-      'firstname', users.firstname,
-      'lastname', users.lastname,
-      'email', users.email 
-    ) AS user
-  FROM articles
-  JOIN users ON articles.user_id = users.id
-  ORDER BY articles.created_at DESC
-`);
-  res.json(allArticles);
-});
+  const existingUser = await prisma.user.findUnique({ where: { email } });
+  if (existingUser)
+    return res
+      .status(409)
+      .json({ message: "User with this email already exists" });
 
-app.get("/article/:slug", async function (req, res) {
-  try {
-    const { slug } = req.params;
-
-    const article = await db.oneOrNone(
-      `
-      SELECT 
-        articles.*,
-        json_build_object(
-          'id', users.id,
-          'firstname', users.firstname,
-          'lastname', users.lastname,
-          'email', users.email 
-        ) AS user
-      FROM articles
-      JOIN users ON articles.user_id = users.id
-      WHERE articles.slug = $1
-      `,
-      [slug]
-    );
-
-    if (!article) {
-      return res.status(404).json({ error: "Article not found" });
-    }
-
-    res.json(article);
-  } catch (err) {
-    console.error("Error fetching article by slug:", err);
-    res.status(500).json({ error: "Server error" });
-  }
-});
-
-app.post("/article/create", withAuth, async function (req, res) {
-  const email = req.email;
-  const slug = generateSlug(req.body.title);
-
-  // get user id from DB
-  const user = await db.one("SELECT id FROM users WHERE email = ${email}", {
-    email,
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const user = await prisma.user.create({
+    data: { firstname, lastname, email, password: hashedPassword },
   });
 
-  await db.any(
-    "INSERT INTO articles(title, image, description, content, slug, user_id) VALUES(${title}, ${image}, ${description}, ${content}, ${slug}, ${user.id} )",
-    { ...req.body, user, slug }
-  );
-
-  res.send({ message: "Дані збережено!", data: req.body });
+  res.status(201).json({ message: "User created", user });
 });
 
-// Sign up
-app.post("/signup", async function (req, res) {
-  const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash(req.body.password, salt);
-
-  // 1. ЗАПИТ ДО ТАБЛИЦІ
-  const existingUser = await db.any(
-    "SELECT * FROM users WHERE email = ${email}",
-    { email: req.body.email }
-  );
-
-  if (existingUser.length) {
-    return res.status(409).send({
-      user: existingUser,
-      message: "Користувач з таким емейлом вже існує",
-    });
-  }
-
-  await db.any(
-    "INSERT INTO users (firstname, lastname, email, password) VALUES(${firstname}, ${lastname}, ${email}, ${hashedPassword})",
-    { ...req.body, hashedPassword }
-  );
-
-  return res
-    .status(201)
-    .send({ message: "Користувача створено", data: req.body });
-});
-
-// Sign In
-app.post("/signin", async function (req, res) {
+app.post("/signin", async (req, res) => {
   const { email, password } = req.body;
-  // Find user by email
-  const user = await db.one("SELECT * FROM users WHERE email = ${email}", {
-    email,
-  });
-
+  const user = await prisma.user.findUnique({ where: { email } });
   if (!user) return res.status(400).json({ message: "User not found" });
 
-  // Compare password with the stored hash
   const isPasswordValid = await bcrypt.compare(password, user.password);
   if (!isPasswordValid)
     return res.status(400).json({ message: "Invalid credentials" });
 
-  // Generate JWT token
   const token = jwt.sign({ email }, SECRET_KEY, { expiresIn: "4h" });
-
   res.json({ token, user });
 });
 
-app.get("/verify-token", async function (req, res) {
-  const token = req.header("Authorization");
+app.get("/verify-token", async (req, res) => {
+  const token = req.header("Authorization")?.split(" ")[1];
   if (!token) return res.status(401).json({ message: "Access Denied" });
 
   try {
-    const verified = jwt.verify(token.split(" ")[1], SECRET_KEY);
-    const { id, firstname, lastname, email, avatar } = await db.one(
-      "SELECT * FROM users WHERE email = ${email}",
-      {
-        email: verified.email,
-      }
-    );
-
-    return res.status(200).send({
-      user: {
-        id,
-        firstname,
-        lastname,
-        email,
-        avatar,
-      },
+    const verified = jwt.verify(token, SECRET_KEY);
+    const user = await prisma.user.findUnique({
+      where: { email: verified.email },
     });
-  } catch (err) {
+    res.json({ user });
+  } catch {
     res.status(400).json({ message: "Invalid Token" });
   }
 });
 
-// Profile
+// ====================== CATEGORIES ======================
+app.post("/category/create", withAuth, async (req, res) => {
+  const slug = generateSlug(req.body.name);
+  const category = await prisma.category.create({
+    data: { ...req.body, slug },
+  });
+  res.json({ message: "Data saved!", category });
+});
 
-app.post("/profile", withAuth, upload.single("avatar"), async (req, res) => {
+app.get("/categories", async (req, res) => {
+  const categories = await prisma.category.findMany();
+  res.json({ categories });
+});
+
+app.get("/category/:slug", async (req, res) => {
+  const { slug } = req.params;
+  const category = await prisma.category.findUnique({
+    where: { slug },
+    include: {
+      articles: {
+        include: {
+          user: {
+            select: { id: true, firstname: true, lastname: true, email: true },
+          },
+        },
+      },
+    },
+  });
+
+  if (!category) return res.status(404).json({ message: "Category not found" });
+  res.json(category);
+});
+
+// ====================== ARTICLES ======================
+app.get("/articles", async (req, res) => {
+  const articles = await prisma.article.findMany({
+    orderBy: { updatedAt: "desc" },
+    include: {
+      user: {
+        select: {
+          id: true,
+          firstname: true,
+          lastname: true,
+          email: true,
+          avatar: true,
+        },
+      },
+    },
+  });
+  res.json(articles);
+});
+
+app.get("/article/:slug", async (req, res) => {
+  const { slug } = req.params;
+  const article = await prisma.article.findUnique({
+    where: { slug },
+    include: {
+      user: {
+        select: {
+          id: true,
+          firstname: true,
+          lastname: true,
+          email: true,
+          avatar: true,
+        },
+      },
+    },
+  });
+
+  if (!article) return res.status(404).json({ message: "Article not found" });
+  res.json(article);
+});
+
+app.post("/article/create", withAuth, async (req, res) => {
   try {
-    const email = req.email;
+    console.log("Request body:", req.body);
+    const { title, image, description, content, category_id } = req.body;
+    const slug = generateSlug(title);
+    const user = await prisma.user.findUnique({ where: { email: req.email } });
+    if (!user) return res.status(404).json({ message: "User not found" });
 
-    // get user id from DB
-    const user = await db.one("SELECT id FROM users WHERE email = ${email}", {
-      email,
+    const article = await prisma.article.create({
+      data: {
+        title,
+        image,
+        description,
+        content,
+        slug,
+        category: { connect: { id: Number(category_id) } },
+        user: { connect: { id: user.id } },
+      },
     });
-    const ext = path.extname(req.file.originalname);
-    const newFileName = `${user.id}_avatar${ext}`;
-    const newPath = path.join("uploads", newFileName);
 
-    // rename the uploaded file
-    fs.renameSync(req.file.path, newPath);
-
-    const fileUrl = `/uploads/${newFileName}`;
-
-    // update DB with new avatar
-    const updatedUser = await db.one(
-      `UPDATE users 
-         SET avatar = \${avatar}
-         WHERE id = \${id}
-         RETURNING id, email, avatar`,
-      { id: user.id, avatar: fileUrl }
-    );
-
-    res.json({
-      message: "Profile updated",
-      user: updatedUser,
-    });
+    res.json({ article });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to update profile" });
+    console.error("Create article error:", err);
+    res.status(500).json({ error: err.message });
   }
 });
 
-// LOGOUT
+// ====================== PROFILE BACKGROUND ======================
+app.post(
+  "/profile/update",
+  withAuth,
+  upload.fields([
+    { name: "avatar", maxCount: 1 },
+    { name: "background", maxCount: 1 },
+  ]),
+  async (req, res) => {
+    try {
+      const email = req.email;
+      const user = await prisma.user.findUnique({ where: { email } });
+      if (!user) return res.status(404).json({ message: "User not found" });
 
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
+      const updateData = {};
+
+      if (req.files.avatar) {
+        const avatarFile = req.files.avatar[0];
+        const ext = path.extname(avatarFile.originalname);
+        const fileName = `${user.id}_avatar${ext}`;
+        const filePath = path.join(avatarUploadDir, fileName);
+        fs.renameSync(avatarFile.path, filePath);
+        updateData.avatar = `/uploads/avatars/${fileName}`;
+      }
+      if (req.body.bio) {
+        updateData.bio = req.body.bio;
+      }
+      if (req.files.background) {
+        const bgFile = req.files.background[0];
+        const ext = path.extname(bgFile.originalname);
+        const fileName = `${user.id}_background${ext}`;
+        const filePath = path.join(backgroundUploadDir, fileName);
+        fs.renameSync(bgFile.path, filePath);
+        updateData.background = `/uploads/backgrounds/${fileName}`;
+      }
+
+      const updatedUser = await prisma.user.update({
+        where: { id: user.id },
+        data: updateData,
+      });
+
+      res.json({ message: "Profile updated", user: updatedUser });
+    } catch (err) {
+      console.error("Profile update error:", err);
+      res.status(500).json({ error: "Failed to update profile" });
+    }
+  }
+);
+
+app.get("/user/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await prisma.user.findUnique({
+      where: { id: Number(id) },
+      include: {
+        articles: {
+          include: {
+            category: true, // щоб у статті було ім’я категорії
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.json(user);
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    res.status(500).json({ error: "Server error" });
+  }
 });
+
+app.listen(port, () => console.log(`Server listening on port ${port}`));

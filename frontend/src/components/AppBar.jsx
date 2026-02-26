@@ -1,54 +1,44 @@
 import * as React from "react";
-import AppBar from "@mui/material/AppBar";
-import Box from "@mui/material/Box";
-import Toolbar from "@mui/material/Toolbar";
-import IconButton from "@mui/material/IconButton";
-import Typography from "@mui/material/Typography";
-import Menu from "@mui/material/Menu";
-import MenuIcon from "@mui/icons-material/Menu";
-import Container from "@mui/material/Container";
-import Avatar from "@mui/material/Avatar";
-import Button from "@mui/material/Button";
-import Tooltip from "@mui/material/Tooltip";
-import MenuItem from "@mui/material/MenuItem";
-import AdbIcon from "@mui/icons-material/Adb";
-import { Link } from "react-router";
-import { useNavigate } from "react-router";
+import AppBar from "@mui/material/AppBar"; // верхня панель
+import Box from "@mui/material/Box"; // контейнер для layout
+import Toolbar from "@mui/material/Toolbar"; // toolbar всередині AppBar
+import IconButton from "@mui/material/IconButton"; // кнопка для іконок
+import Typography from "@mui/material/Typography"; // текст
+import Menu from "@mui/material/Menu"; // меню
+import MenuIcon from "@mui/icons-material/Menu"; // іконка "гамбургер"
+import Container from "@mui/material/Container"; // контейнер з відступами
+import Avatar from "@mui/material/Avatar"; // аватар користувача
+import Button from "@mui/material/Button"; // кнопка
+import Tooltip from "@mui/material/Tooltip"; // підказка
+import MenuItem from "@mui/material/MenuItem"; // пункт меню
+import { Link } from "react-router"; // для переходів
+import { useNavigate } from "react-router"; // програмна навігація
 import { useContext } from "react";
-import { AuthContext } from "../contexts/AuthContext";
-import ToggleThemeBtn from "./UI/ThemeToggleBtn";
+import { AuthContext } from "../contexts/AuthContext"; // авторизація
+import ToggleThemeBtn from "./UI/ThemeToggleBtn"; // кнопка перемикання теми
+import CategoriesMenu from "./CategoriesMenu"; // меню категорій
 
-function ResponsiveAppBar() {
-  const { user, handleLogout } = useContext(AuthContext);
-  const [anchorElNav, setAnchorElNav] = React.useState(null);
-  const [anchorElUser, setAnchorElUser] = React.useState(null);
-  let navigate = useNavigate();
+function ResponsiveAppBar({ categories }) {
+  const { user, handleLogout } = useContext(AuthContext); // користувач і вихід
+  const [anchorElNav, setAnchorElNav] = React.useState(null); // стан меню навігації (мобільне)
+  const [anchorElUser, setAnchorElUser] = React.useState(null); // стан меню користувача
+  const navigate = useNavigate(); // для програмної навігації
 
-  const handleOpenNavMenu = (event) => {
-    setAnchorElNav(event.currentTarget);
-  };
-  const handleOpenUserMenu = (event) => {
-    setAnchorElUser(event.currentTarget);
-  };
-
+  const handleOpenNavMenu = (event) => setAnchorElNav(event.currentTarget); // відкрити мобільне меню
+  const handleCloseNavMenu = () => setAnchorElNav(null); // закрити мобільне меню
+  const handleOpenUserMenu = (event) => setAnchorElUser(event.currentTarget); // відкрити меню користувача
+  const handleCloseUserMenu = () => setAnchorElUser(null); // закрити меню користувача
   const handleSettingsClick = (action) => {
-    handleCloseUserMenu();
-    action();
-  };
-
-  const handleCloseNavMenu = () => {
-    setAnchorElNav(null);
-  };
-
-  const handleCloseUserMenu = () => {
-    setAnchorElUser(null);
+    handleCloseUserMenu(); // закриваємо меню
+    action(); // виконуємо дію (профіль або вихід)
   };
 
   const leftLinks = [
-    { title: "Comments", link: "/comments" },
+    { title: "About Us", link: "/about-us" },
     { title: "Contact", link: "/contact-form" },
-    { title: "My Blog", link: "/blog" },
-    { title: "Form Blog", link: "/blog/create" },
+    { title: "Add Article", link: "/add-article" },
+    { title: "Add Category", link: "/add-category" },
+    { title: "FAQ", link: "/faq" },
   ];
 
   const settings = [
@@ -58,171 +48,143 @@ function ResponsiveAppBar() {
 
   return (
     <AppBar position="sticky">
+      {/* фіксована верхня панель */}
       <Container>
         <Toolbar disableGutters>
-          <AdbIcon sx={{ display: { xs: "none", md: "flex" }, mr: 1 }} />
-          <Link to="/">
-            <Typography
-              variant="h6"
-              noWrap
-              sx={{
-                mr: 2,
-                display: { xs: "none", md: "flex" },
-                fontFamily: "monospace",
-                fontWeight: 700,
-                letterSpacing: ".3rem",
-                color: "white",
-                textDecoration: "none",
-              }}
-            >
-              Mercury
-            </Typography>
-          </Link>
+          {/* Лого */}
+          <Typography
+            variant="h6"
+            component={Link}
+            to="/"
+            sx={{
+              mr: 2,
+              display: { xs: "none", md: "flex" },
+              fontFamily: "monospace",
+              fontWeight: 700,
+              letterSpacing: ".3rem",
+              color: "white",
+              textDecoration: "none",
+            }}
+          >
+            Mercury
+          </Typography>
 
+          {/* Мобільне меню */}
           <Box sx={{ flexGrow: 1, display: { xs: "flex", md: "none" } }}>
             <IconButton
               size="large"
-              aria-label="account of current user"
-              aria-controls="menu-appbar"
-              aria-haspopup="true"
-              onClick={handleOpenNavMenu}
+              aria-label="menu"
+              onClick={handleOpenNavMenu} // відкриваємо меню
               color="inherit"
             >
               <MenuIcon />
             </IconButton>
             <Menu
-              id="menu-appbar"
-              anchorEl={anchorElNav}
-              anchorOrigin={{
-                vertical: "bottom",
-                horizontal: "left",
+              anchorEl={anchorElNav} // прив'язка до кнопки
+              open={Boolean(anchorElNav)} // чи відкрите
+              onClose={handleCloseNavMenu} // закриття
+              anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+              transformOrigin={{ vertical: "top", horizontal: "left" }}
+              PaperProps={{
+                sx: {
+                  "& .MuiMenuItem-root": {
+                    mb: 1,
+                  },
+                },
               }}
-              keepMounted
-              transformOrigin={{
-                vertical: "top",
-                horizontal: "left",
-              }}
-              open={Boolean(anchorElNav)}
-              onClose={handleCloseNavMenu}
-              sx={{ display: { xs: "block", md: "none" } }}
             >
               {leftLinks.map((page) => (
                 <MenuItem key={page.link} onClick={handleCloseNavMenu}>
-                  <Typography sx={{ textAlign: "center" }}>
+                  <Typography
+                    variant="button"
+                    component={Link}
+                    to={page.link}
+                    sx={{
+                      textAlign: "center",
+                      textTransform: "uppercase",
+                      color: "inherit",
+                      textDecoration: "none",
+                    }}
+                  >
                     {page.title}
                   </Typography>
                 </MenuItem>
               ))}
+              <MenuItem>
+                <CategoriesMenu categories={categories} />
+              </MenuItem>
+              {/* мобільне меню категорій */}
             </Menu>
           </Box>
 
-          <AdbIcon sx={{ display: { xs: "flex", md: "none" }, mr: 1 }} />
-          <Typography
-            variant="h5"
-            noWrap
-            component="a"
-            href="#app-bar-with-responsive-menu"
-            sx={{
-              mr: 2,
-              display: { xs: "flex", md: "none" },
-              flexGrow: 1,
-              fontFamily: "monospace",
-              fontWeight: 700,
-              letterSpacing: ".3rem",
-              color: "inherit",
-              textDecoration: "none",
-            }}
-          >
-            LOGO
-          </Typography>
-          <Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" } }}>
-            {leftLinks.map((page) => (
-              <Link to={page.link}>
-                <Button
-                  key={page.title}
-                  onClick={handleCloseNavMenu}
-                  sx={{ my: 2, color: "white", display: "block" }}
-                >
-                  {page.title}
-                </Button>
-              </Link>
-            ))}
-          </Box>
+          {/* Десктопне меню категорій */}
+
+          {/* Посилання зліва для десктопа */}
           <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              flexDirection: "row",
-              flexGrow: 0,
-              gap: 2.5,
-            }}
+            sx={{ flexGrow: 1, display: { xs: "none", md: "flex" }, gap: 1 }}
           >
-            {!user ? (
-              <>
-                <Link to={"/signin"}>
-                  <Button
-                    onClick={handleCloseNavMenu}
-                    sx={{ my: 2, color: "white", display: "block" }}
-                  >
-                    {"Sign In"}
-                  </Button>
-                </Link>
-                <Link to={"/signup"}>
-                  <Button
-                    onClick={handleCloseNavMenu}
-                    sx={{ my: 2, color: "white", display: "block" }}
-                  >
-                    {"Sign Up"}
-                  </Button>
-                </Link>
-              </>
-            ) : null}
+            {leftLinks.map((page) => (
+              <Button
+                key={page.title}
+                component={Link}
+                to={page.link} // перехід
+                sx={{ color: "white" }}
+              >
+                {page.title}
+              </Button>
+            ))}
+            <CategoriesMenu categories={categories} />
+          </Box>
 
-            {user ? (
-              <Tooltip title="Open settings">
-                <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                  <Avatar
-                    alt="Remy Sharp"
-                    src={import.meta.env.VITE_SERVER_URL + user.avatar}
-                  >
-                    {user.firstname[0].toUpperCase() +
-                      user.lastname[0].toUpperCase()}
-                  </Avatar>
-                </IconButton>
-              </Tooltip>
-            ) : null}
-            <Menu
-              sx={{ mt: "45px" }}
-              id="menu-appbar"
-              anchorEl={anchorElUser}
-              anchorOrigin={{
-                vertical: "top",
-                horizontal: "right",
-              }}
-              keepMounted
-              transformOrigin={{
-                vertical: "top",
-                horizontal: "right",
-              }}
-              open={Boolean(anchorElUser)}
-              onClose={handleCloseUserMenu}
-            >
-              {settings.map((setting) => (
-                <MenuItem
-                  key={setting}
-                  onClick={() => handleSettingsClick(setting.action)}
+          {/* Кнопки користувача */}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 2.5 }}>
+            {!user && (
+              <>
+                <Button component={Link} to="/signin" sx={{ color: "white" }}>
+                  Sign In
+                </Button>
+                <Button component={Link} to="/signup" sx={{ color: "white" }}>
+                  Sign Up
+                </Button>
+              </>
+            )}
+            {user && (
+              <>
+                <Tooltip title="Open settings">
+                  <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
+                    <Avatar src={import.meta.env.VITE_SERVER_URL + user.avatar}>
+                      {user.firstname[0].toUpperCase() +
+                        user.lastname[0].toUpperCase()}
+                    </Avatar>
+                  </IconButton>
+                </Tooltip>
+                <Menu
+                  anchorEl={anchorElUser} // меню користувача
+                  open={Boolean(anchorElUser)}
+                  onClose={handleCloseUserMenu}
+                  anchorOrigin={{ vertical: "top", horizontal: "right" }}
+                  transformOrigin={{ vertical: "top", horizontal: "right" }}
+                  sx={{ mt: "45px" }}
                 >
-                  <Typography sx={{ textAlign: "center" }}>
-                    {setting.title}
-                  </Typography>
-                </MenuItem>
-              ))}
-            </Menu>
-            <ToggleThemeBtn />
+                  {settings.map((setting) => (
+                    <MenuItem
+                      key={setting.title}
+                      onClick={() => handleSettingsClick(setting.action)}
+                    >
+                      <Typography sx={{ textAlign: "center" }}>
+                        {setting.title} {/* Профіль або Вихід */}
+                      </Typography>
+                    </MenuItem>
+                  ))}
+                </Menu>
+              </>
+            )}
+            <ToggleThemeBtn /> {/* кнопка зміни теми */}
           </Box>
         </Toolbar>
       </Container>
     </AppBar>
   );
 }
+
 export default ResponsiveAppBar;

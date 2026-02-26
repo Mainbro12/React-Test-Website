@@ -4,9 +4,12 @@ import * as Yup from "yup";
 import { useState } from "react";
 import PasswordStrengthBar from "react-password-strength-bar";
 import api from "../../api"; // <-- наш axios instance
+import PasswordInput from "../UI/PasswordInput";
+import { useNavigate } from "react-router";
 
 function SignUpPage() {
   const [serverError, setServerError] = useState(null);
+  const navigate = useNavigate();
 
   const formik = useFormik({
     initialValues: {
@@ -40,6 +43,7 @@ function SignUpPage() {
         const response = await api.post("/signup", values);
         resetForm();
         setServerError(null);
+        navigate("/signin", { state: { email: values.email } });
         return response.data;
       } catch (error) {
         setServerError(error.response?.data?.message || error.message);
@@ -90,10 +94,9 @@ function SignUpPage() {
           error={Boolean(formik.errors.email)}
         />
 
-        <TextField
+        <PasswordInput
           label="Password"
           name="password"
-          type="password"
           value={formik.values.password}
           onChange={formik.handleChange}
           fullWidth
@@ -103,7 +106,7 @@ function SignUpPage() {
         />
         <PasswordStrengthBar password={formik.values.password} />
 
-        <TextField
+        <PasswordInput
           label="Repeat Password"
           name="repeatPassword"
           type="password"
